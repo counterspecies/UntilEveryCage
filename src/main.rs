@@ -6,8 +6,9 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
+use location::Location;
 
-
+mod location;
 
 #[tokio::main]
 async fn main() {
@@ -24,29 +25,7 @@ async fn main() {
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Location {
-    establishment_id: String,
-    establishment_number: String,
-    establishment_name: String,
-    duns_number: String,
-    street: String,
-    city: String,
-    state: String,
-    zip: String,
-    phone: String,
-    grant_date: String,
-    activities: String,
-    dbas: String,
-    district: String,
-    circuit: String,
-    size: String,
-    latitude: f64,
-    longitude: f64,
-    county: String,
-    fips_code: String,
-    slaughter: String,
-}
+
 
 #[derive(Serialize, Debug)]
 struct LocationResponse {
@@ -55,26 +34,27 @@ struct LocationResponse {
     lon: f64,
     r#type: String,
     state: String,
-    slaughter: String,
+    slaughters: String,
 }
 
-async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
+async fn get_locations_handler() -> Result<Json<Vec<Location>>, (StatusCode, String)> {
     match read_locations_from_csv("USDA_data.csv").await {
         Ok(locations) => {
-            let filtered: Vec<LocationResponse> = locations
-                .into_iter()
-                .map(|loc| {
-                    LocationResponse {
-                        name: loc.establishment_name,
-                        lat: loc.latitude,
-                        lon: loc.longitude,
-                        r#type: loc.activities,
-                        state: loc.state,
-                        slaughter: loc.slaughter,
-                    }
-                })
-                .collect();
-            Ok(Json(filtered))
+            // let filtered: Vec<LocationResponse> = locations
+            //     .into_iter()
+            //     .map(|loc| {
+
+            //         LocationResponse {
+            //             name: loc.establishment_name,
+            //             lat: loc.latitude,
+            //             lon: loc.longitude,
+            //             r#type: loc.activities,
+            //             state: loc.state,
+            //             slaughter: loc.slaughter,
+            //         }
+            //     })
+            //     .collect();
+            Ok(Json(locations))
         }
         Err(e) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,

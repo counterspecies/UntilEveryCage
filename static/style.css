@@ -15,3 +15,19 @@ body {
     border-radius: 10px;
     cursor: pointer;
 }
+
+.info-popup h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.info-popup p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.info-popup hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 8px 0;
+}
