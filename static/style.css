@@ -7,3 +7,11 @@ body {
     width: 100%;
     border: 1px solid #ccc;
 }
+
+#button1 {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}

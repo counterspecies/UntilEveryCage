@@ -53,7 +53,7 @@ struct LocationResponse {
     lat: f64,
     lon: f64,
     r#type: String,
-    state: String
+    state: String,
 }
 
 async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
@@ -67,7 +67,7 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
                         lat: loc.latitude,
                         lon: loc.longitude,
                         r#type: loc.activities,
-                        state: loc.state
+                        state: loc.state,
                     }
                 })
                 .collect();
