@@ -1,4 +1,7 @@
+// @ts-nocheck
 const map = L.map('map').setView([39.8283, -98.5795], 4);
+
+
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -80,14 +83,10 @@ async function initializeApp() {
         const response = await fetch('http://127.0.0.1:3000/api/locations');
         allLocations = await response.json();
 
-        // --- NEW LOGIC TO POPULATE DROPDOWN ---
-        // 1. Get all state values from the data
+
         const stateValues = allLocations.map(location => location.state);
-        // 2. Filter out any null/undefined values and get only the unique states
         const uniqueStates = [...new Set(stateValues.filter(state => state != null))];
-        // 3. Sort the states alphabetically
         uniqueStates.sort();
-        // 4. Create and add an <option> element for each state
         uniqueStates.forEach(state => {
             const option = document.createElement('option');
             option.value = state;
