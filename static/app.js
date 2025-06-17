@@ -14,8 +14,13 @@ async function plotLocations() {
         const locations = await response.json();
 
         locations.forEach(location => {
+
+        if (location.state == "TX") {
             const marker = L.marker([location.lat, location.lon]).addTo(map);
             marker.bindPopup(`<b>${location.name}</b><br>${location.type}`);
+            
+        }
+
         });
 
     } catch (error) {
