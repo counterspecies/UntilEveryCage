@@ -45,6 +45,7 @@ struct Location {
     longitude: f64,
     county: String,
     fips_code: String,
+    slaughter: String,
 }
 
 #[derive(Serialize, Debug)]
@@ -54,10 +55,11 @@ struct LocationResponse {
     lon: f64,
     r#type: String,
     state: String,
+    slaughter: String,
 }
 
 async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
-    match read_locations_from_csv("mpi_locations.csv").await {
+    match read_locations_from_csv("slaughter_data_combined.csv").await {
         Ok(locations) => {
             let filtered: Vec<LocationResponse> = locations
                 .into_iter()
@@ -68,6 +70,7 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
                         lon: loc.longitude,
                         r#type: loc.activities,
                         state: loc.state,
+                        slaughter: loc.slaughter,
                     }
                 })
                 .collect();

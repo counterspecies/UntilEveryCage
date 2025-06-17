@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supply Chain Map</title>
+    <title>Cruelty Map</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     
@@ -13,7 +13,21 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Interactive Supply Chain Map</h1>
+    <h1>Interactive Map</h1>
+
+    <div id="filter-container">
+    <label for="state-selector">State:</label>
+    <select id="state-selector">
+        <option value="all">All States</option>
+        </select>
+
+    <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
+    <input type="checkbox" id="slaughterhousesCheckbox" checked> 
+
+    <label for="meatProcessingPlantsCheckbox">Show Processing Plants</label>
+    <input type="checkbox" id="meatProcessingPlantsCheckbox">
+</div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
