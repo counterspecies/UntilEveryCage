@@ -59,7 +59,7 @@ struct LocationResponse {
 }
 
 async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
-    match read_locations_from_csv("slaughter_data_combined.csv").await {
+    match read_locations_from_csv("USDA_data.csv").await {
         Ok(locations) => {
             let filtered: Vec<LocationResponse> = locations
                 .into_iter()
