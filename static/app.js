@@ -1,5 +1,7 @@
 const map = L.map('map').setView([20, 0], 2); // Centered roughly globally, zoomed out
 
+
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
@@ -21,4 +23,4 @@ async function plotLocations() {
     }
 }
 
-plotLocations();7
+plotLocations();

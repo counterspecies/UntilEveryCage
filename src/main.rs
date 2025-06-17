@@ -23,10 +23,54 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-// The handler that serves our locations
-async fn get_locations_handler() -> Result<Json<Vec<Location>>, (StatusCode, String)> {
-    match read_locations_from_csv("locations.csv").await {
-        Ok(locations) => Ok(Json(locations)),
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Location {
+    establishment_id: String,
+    establishment_number: String,
+    establishment_name: String,
+    duns_number: String,
+    street: String,
+    city: String,
+    state: String,
+    zip: String,
+    phone: String,
+    grant_date: String,
+    activities: String,
+    dbas: String,
+    district: String,
+    circuit: String,
+    size: String,
+    latitude: f64,
+    longitude: f64,
+    county: String,
+    fips_code: String,
+}
+
+#[derive(Serialize, Debug)]
+struct LocationResponse {
+    name: String,
+    lat: f64,
+    lon: f64,
+    r#type: String,
+}
+
+async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
+    match read_locations_from_csv("mpi_locations.csv").await {
+        Ok(locations) => {
+            let filtered: Vec<LocationResponse> = locations
+                .into_iter()
+                .map(|loc| {
+                    LocationResponse {
+                        name: loc.establishment_name,
+                        lat: loc.latitude,
+                        lon: loc.longitude,
+                        r#type: loc.activities,
+                    }
+                })
+                .collect();
+            Ok(Json(filtered))
+        }
         Err(e) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("Failed to read locations: {}", e),
@@ -34,20 +78,9 @@ async fn get_locations_handler() -> Result<Json<Vec<Location>>, (StatusCode, Str
     }
 }
 
-// A simple struct that matches our test locations.csv
-#[derive(Serialize, Deserialize, Debug)]
-struct Location {
-    name: String,
-    lat: f64,
-    lon: f64,
-    r#type: String,
-}
-
-// The function that reads and parses the CSV file
 async fn read_locations_from_csv(path: &str) -> Result<Vec<Location>, Box<dyn Error>> {
     let mut locations = Vec::new();
     let mut reader = csv::Reader::from_path(path)?;
-
 
     for result in reader.deserialize() {
         let record: Location = result?;
