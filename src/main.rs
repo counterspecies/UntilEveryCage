@@ -42,6 +42,9 @@ struct LocationResponse {
     slaughter: String,
     animals_slaughtered: String,
     slaughter_volume_category: String,
+    processing_volume_category: String,
+    dbas: String,
+    phone: String,
 }
 
 async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
@@ -63,6 +66,9 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
                         street: loc.street,
                         zip: loc.zip,
                         slaughter_volume_category: loc.slaughter_volume_category,
+                        processing_volume_category: "2.0".to_string(),
+                        dbas: loc.dbas,
+                        phone: loc.phone,
                     }
                 })
                 .collect();

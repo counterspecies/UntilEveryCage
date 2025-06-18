@@ -66,32 +66,73 @@ function applyFilters() {
 
         let animals_slaughtered_yearly_text = "0";
         if (location.slaughter_volume_category === "1.0") {
-            animals_slaughtered_yearly_text = "Less than 10,000 animals killed per year.";
+            animals_slaughtered_yearly_text = "Less than 1,000 animals killed per year.";
         } else if (location.slaughter_volume_category === "2.0") {
-            animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year.";
+            animals_slaughtered_yearly_text = "1,000 to 10,000 animals killed per year.";
         } else if (location.slaughter_volume_category === "3.0") {
-            animals_slaughtered_yearly_text = "100,000 to 1,000,000 animals killed per year.";
+            animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year.";
         } else if (location.slaughter_volume_category === "4.0") {
-            animals_slaughtered_yearly_text = "1,000,000 to 10,000,000 animals killed per year.";
+            animals_slaughtered_yearly_text = "100,000 to 10,000,000 animals killed per year.";
         } else if (location.slaughter_volume_category === "5.0") {
             animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year.";
         }
 
+        // let animals_slaughtered_yearly = 0;
+        // if (location.slaughter_volume_category === "1.0") {
+        //     animals_slaughtered_yearly = 500; 
+        // } else if (location.slaughter_volume_category === "2.0") {
+        //     animals_slaughtered_yearly = 10000; 
+        // } else if (location.slaughter_volume_category === "3.0") {
+        //     animals_slaughtered_yearly = 50000; 
+        // } else if (location.slaughter_volume_category === "4.0") {
+        //     animals_slaughtered_yearly = 5000000; 
+        // } else if (location.slaughter_volume_category === "5.0") {
+        //     animals_slaughtered_yearly = 10000000;
+        // }
+
+
+        // let estimatedAnimalsKilledToday = (getHoursSinceMidnight() / 24 * animals_slaughtered_yearly / 365).toFixed(0).toLocaleString();
+
         let slaughterText = "";
         if (location.slaughter == "Yes") {
             slaughterText = `<hr>
-            <p><strong>Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
-            <p><strong>Death count:</strong> ${animals_slaughtered_yearly_text || 'N/A'}</p>`
+            <p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
+            <p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text || 'N/A'}</p>
+            `
+        }
+
+        let animals_processed_monthly_text = "N/A";
+        if (location.processing_volume_category === "1.0") {
+            animals_processed_monthly_text = "Less than 10,000 pounds of products processed per month.";
+        } else if (location.processing_volume_category === "2.0") {
+            animals_processed_monthly_text = "10,000 to 100,000 pounds of products processed per month.";
+        } else if (location.processing_volume_category === "3.0") {
+            animals_processed_monthly_text = "100,000 to 1,000,000 pounds of products processed per month.";
+        } else if (location.processing_volume_category === "4.0") {
+            animals_processed_monthly_text = "1,000,000 to 10,000,000 pounds of products processed per month.";
+        } else if (location.processing_volume_category === "5.0") {
+            animals_processed_monthly_text = "Over 10,000,000 pounds of products processed per month.";
         }
         
 
+        let otherNamesText = "";
+        if (location.dbas.length !== 0) {
+            otherNamesText = `<p><strong>Doing Business As:</strong> ${location.dbas}</p>`;
+        }
+        
+        
+        console.log(location.dbas);
         // Build the new, detailed HTML content for the popup
         const popupContent = `
             <div class="info-popup">
-                <h2>${location.establishment_name || 'Unknown Name'}</h2>
+                <h2>${location.establishment_name || 'Unknown Name'} </h2>
                 <hr>
                 <p><strong>Address:</strong> ${address || 'N/A'}</p>
+                <p><strong>Phone Number:</strong> ${location.phone || 'N/A'}</p>
+                ${otherNamesText}
+                <hr>
                 <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
+                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text || 'N/A'}</p>
                 ${slaughterText}
             </div>
         `;
@@ -121,7 +162,25 @@ function applyFilters() {
     }
 }
 
-// --- Setup functions (unchanged) ---
+function getHoursSinceMidnight() {
+    // 1. Get the current date and time.
+    const now = new Date();
+
+    // 2. Create a new date object representing midnight of the same day.
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero.
+
+    // 3. Calculate the difference between the two dates in milliseconds.
+    const diffInMilliseconds = now.getTime() - midnight.getTime();
+
+    // 4. Convert the difference from milliseconds to hours.
+    // (1000 milliseconds per second * 60 seconds per minute * 60 minutes per hour)
+    const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+
+    return diffInHours;
+}
+
+// --- Setup functions ---
 slaughterhouseCheckbox.addEventListener('change', applyFilters);
 meatProcessingCheckbox.addEventListener('change', applyFilters);
 stateSelector.addEventListener('change', applyFilters);
