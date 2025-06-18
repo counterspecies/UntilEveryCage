@@ -62,16 +62,37 @@ function applyFilters() {
         // Create the marker with the correct icon
         const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
 
+        let address = location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
 
+        let animals_slaughtered_yearly_text = "0";
+        if (location.slaughter_volume_category === "1.0") {
+            animals_slaughtered_yearly_text = "Less than 10,000 animals killed per year.";
+        } else if (location.slaughter_volume_category === "2.0") {
+            animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year.";
+        } else if (location.slaughter_volume_category === "3.0") {
+            animals_slaughtered_yearly_text = "100,000 to 1,000,000 animals killed per year.";
+        } else if (location.slaughter_volume_category === "4.0") {
+            animals_slaughtered_yearly_text = "1,000,000 to 10,000,000 animals killed per year.";
+        } else if (location.slaughter_volume_category === "5.0") {
+            animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year.";
+        }
+
+        let slaughterText = "";
+        if (location.slaughter == "Yes") {
+            slaughterText = `<hr>
+            <p><strong>Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
+            <p><strong>Death count:</strong> ${animals_slaughtered_yearly_text || 'N/A'}</p>`
+        }
+        
 
         // Build the new, detailed HTML content for the popup
         const popupContent = `
             <div class="info-popup">
-                <h3>${location.establishment_name || 'Unknown Name'}</h3>
+                <h2>${location.establishment_name || 'Unknown Name'}</h2>
                 <hr>
-                <p><strong>State:</strong> ${location.state || 'N/A'}</p>
+                <p><strong>Address:</strong> ${address || 'N/A'}</p>
                 <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
-                <p><strong>Performs Slaughter:</strong> ${location.slaughter + " " + "()" || 'No'}</p>
+                ${slaughterText}
             </div>
         `;
 

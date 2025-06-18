@@ -8,6 +8,8 @@ use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use location::Location;
 
+use crate::location::get_slaughtered_animals;
+
 mod location;
 
 #[tokio::main]
@@ -29,32 +31,42 @@ async fn main() {
 
 #[derive(Serialize, Debug)]
 struct LocationResponse {
-    name: String,
-    lat: f64,
-    lon: f64,
-    r#type: String,
+    establishment_name: String,
+    latitude: f64,
+    longitude: f64,
+    activities: String,
     state: String,
-    slaughters: String,
+    city: String,
+    street: String,
+    zip: String,
+    slaughter: String,
+    animals_slaughtered: String,
+    slaughter_volume_category: String,
 }
 
-async fn get_locations_handler() -> Result<Json<Vec<Location>>, (StatusCode, String)> {
+async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusCode, String)> {
     match read_locations_from_csv("USDA_data.csv").await {
         Ok(locations) => {
-            // let filtered: Vec<LocationResponse> = locations
-            //     .into_iter()
-            //     .map(|loc| {
-
-            //         LocationResponse {
-            //             name: loc.establishment_name,
-            //             lat: loc.latitude,
-            //             lon: loc.longitude,
-            //             r#type: loc.activities,
-            //             state: loc.state,
-            //             slaughter: loc.slaughter,
-            //         }
-            //     })
-            //     .collect();
-            Ok(Json(locations))
+            let filtered: Vec<LocationResponse> = locations
+                .into_iter()
+                .map(|loc| {
+                    let animals_slaughtered = get_slaughtered_animals(&loc);
+                    LocationResponse {
+                        establishment_name: loc.establishment_name,
+                        latitude: loc.latitude,
+                        longitude: loc.longitude,
+                        activities: loc.activities,
+                        state: loc.state,
+                        slaughter: loc.slaughter,
+                        animals_slaughtered,
+                        city: loc.city,
+                        street: loc.street,
+                        zip: loc.zip,
+                        slaughter_volume_category: loc.slaughter_volume_category,
+                    }
+                })
+                .collect();
+            Ok(Json(filtered))
         }
         Err(e) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
