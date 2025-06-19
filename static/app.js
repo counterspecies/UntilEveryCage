@@ -77,21 +77,6 @@ function applyFilters() {
             animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year.";
         }
 
-        // let animals_slaughtered_yearly = 0;
-        // if (location.slaughter_volume_category === "1.0") {
-        //     animals_slaughtered_yearly = 500; 
-        // } else if (location.slaughter_volume_category === "2.0") {
-        //     animals_slaughtered_yearly = 10000; 
-        // } else if (location.slaughter_volume_category === "3.0") {
-        //     animals_slaughtered_yearly = 50000; 
-        // } else if (location.slaughter_volume_category === "4.0") {
-        //     animals_slaughtered_yearly = 5000000; 
-        // } else if (location.slaughter_volume_category === "5.0") {
-        //     animals_slaughtered_yearly = 10000000;
-        // }
-
-
-        // let estimatedAnimalsKilledToday = (getHoursSinceMidnight() / 24 * animals_slaughtered_yearly / 365).toFixed(0).toLocaleString();
 
         let slaughterText = "";
         if (location.slaughter == "Yes") {
@@ -162,23 +147,6 @@ function applyFilters() {
     }
 }
 
-function getHoursSinceMidnight() {
-    // 1. Get the current date and time.
-    const now = new Date();
-
-    // 2. Create a new date object representing midnight of the same day.
-    const midnight = new Date();
-    midnight.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero.
-
-    // 3. Calculate the difference between the two dates in milliseconds.
-    const diffInMilliseconds = now.getTime() - midnight.getTime();
-
-    // 4. Convert the difference from milliseconds to hours.
-    // (1000 milliseconds per second * 60 seconds per minute * 60 minutes per hour)
-    const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
-
-    return diffInHours;
-}
 
 // --- Setup functions ---
 slaughterhouseCheckbox.addEventListener('change', applyFilters);
@@ -187,7 +155,8 @@ stateSelector.addEventListener('change', applyFilters);
 
 async function initializeApp() {
     try {
-        const response = await fetch('http://127.0.0.1:3000/api/locations');
+        // Correct for all devices
+        const response = await fetch('/api/locations');
         allLocations = await response.json();
         
         const stateValues = allLocations.map(location => location.state);
