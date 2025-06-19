@@ -62,7 +62,7 @@ def scrape_aphis_with_selenium(year: int):
             # Use pandas to directly read the HTML table into a DataFrame
             # This is a very efficient way to grab table data.
             table_html = driver.find_element(By.CSS_SELECTOR, "table.slds-table").get_attribute('outerHTML')
-            df_list = pd.read_html(table_html)
+            df_list = pd.read_html(table_html) # type: ignore
             if df_list:
                 all_facilities_data.append(df_list[0])
                 print(f"  > Scraped {len(df_list[0])} records.")

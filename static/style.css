@@ -1,19 +1,119 @@
+/* --- Global Styles & Typography --- */
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    margin: 0;
+    background-color: #f4f4f9; /* Light grey background */
+    color: #333; /* Dark grey text for readability */
 }
 
+h1, h2, h3, h4 {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+a {
+    color: #0056b3; /* A standard, accessible blue for links */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Container & Section Styling --- */
+.manifesto-container,
+.kill-counter-container,
+#filter-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.manifesto-container h1 {
+    color: #111;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 1.5rem 0;
+}
+
+/* --- Kill Counter Specific Styles --- */
+.kill-counter-container h2 {
+    margin-top: 0;
+    color: #d90429; /* A strong, alarming red */
+}
+
+.kill-counter-list {
+    text-align: left;
+    margin: 1.5rem auto 0;
+    display: inline-block;
+    font-size: 1.1em;
+    line-height: 1.9;
+    font-family: 'Menlo', 'Consolas', 'Roboto Mono', monospace; /* Monospaced for numbers */
+}
+
+.kill-counter-list span {
+    display: inline-block;
+    font-weight: bold;
+    color: #000;
+    min-width: 150px; /* Aligns the numbers */
+    text-align: right;
+    padding-right: 15px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.kill-counter-list .animal-name {
+    color: #444;
+    background-color: transparent;
+    font-weight: normal;
+    text-align: left;
+}
+
+/* --- Filter Container Styles --- */
+#filter-container {
+    background-color: #e9ecef; /* A slightly darker background for UI controls */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+#filter-container label {
+    font-weight: 500;
+    color: #495057;
+}
+
+#filter-container select,
+#filter-container input {
+    margin-left: 0.5rem;
+}
+
+#state-selector {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* --- Map & Popups --- */
 #map {
-    height: 600px;
-    width: 100%;
-    border: 1px solid #ccc;
-}
-
-#button1 {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
+    height: 70vh; /* Make map taller, relative to viewport height */
+    max-width: 100%;
+    margin-left: 8%;
+    margin-right: 8%;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
 }
 
 .info-popup h3 {
@@ -22,12 +122,18 @@ body {
 }
 
 .info-popup p {
-    margin: 4px 0;
-    font-size: 14px;
+    margin: 5px 0;
 }
 
-.info-popup hr {
-    border: 0;
-    border-top: 1px solid #eee;
-    margin: 8px 0;
+
+/* --- Footer Styles --- */
+.footer-container {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.footer-container p {
+    margin: 0.5rem 0;
 }

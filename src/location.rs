@@ -1,5 +1,3 @@
-
-
 use serde::Serialize;
 use serde::Deserialize;
 
@@ -143,4 +141,56 @@ pub fn get_slaughtered_animals(location: &Location) -> String {
 
     // Join the collected names with a comma and space
     killed_animals.join(", ")
+}
+
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AphisReport {
+    #[serde(rename = "Account Name")]
+    pub account_name: String,
+    #[serde(rename = "Customer Number_x")]
+    pub customer_number_x: String,
+    #[serde(rename = "Certificate Number")]
+    pub certificate_number: String,
+    #[serde(rename = "Registration Type")]
+    pub registration_type: String,
+    #[serde(rename = "Certificate Status")]
+    pub certificate_status: String,
+    #[serde(rename = "Status Date")]
+    pub status_date: String,
+    #[serde(rename = "Address Line 1")]
+    pub address_line_1: String,
+    #[serde(rename = "Address Line 2")]
+    pub address_line_2: String,
+    #[serde(rename = "City-State-Zip")]
+    pub city_state_zip: String,
+    #[serde(rename = "County")]
+    pub county: String,
+    #[serde(rename = "Customer Number_y")]
+    pub customer_number_y: String,
+    #[serde(rename = "Year")]
+    pub year: String,
+    #[serde(rename = "Dogs")]
+    pub dogs: String,
+    #[serde(rename = "Cats")]
+    pub cats: String,
+    #[serde(rename = "Guinea Pigs")]
+    pub guinea_pigs: String,
+    #[serde(rename = "Hamsters")]
+    pub hamsters: String,
+    #[serde(rename = "Rabbits")]
+    pub rabbits: String,
+    #[serde(rename = "Non-Human Primates")]
+    pub non_human_primates: String,
+    #[serde(rename = "Sheep")]
+    pub sheep: String,
+    #[serde(rename = "Pigs")]
+    pub pigs: String,
+    #[serde(rename = "Other Farm Animals")]
+    pub other_farm_animals: String,
+    #[serde(rename = "All Other Animals")]
+    pub all_other_animals: String,
+    pub latitude: f64,
+    pub longitude: f64,
 }

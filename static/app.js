@@ -1,21 +1,43 @@
 // @ts-nocheck
 
-
 const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
 // 2. Add the maxBounds options when creating the map.
 const map = L.map('map', {
-    maxBounds: worldBounds,        // Restricts the view to our defined bounds
-    maxBoundsViscosity: 0.1    // Makes the bounds solid like a wall (no bouncing)
+    maxBounds: worldBounds,         // Restricts the view to our defined bounds
+    maxBoundsViscosity: 0.1         // Makes the bounds solid like a wall (no bouncing)
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
 
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// --- START OF MAP BACKGROUND CHANGES ---
+
+// 1. Define multiple map layers (tile providers)
+const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+});
+
+const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	maxZoom: 19,
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+
+// 2. Add one of the layers to the map by default (this will be the initial view)
+streetMap.addTo(map);
+
+// 3. Create a 'baseMaps' object to hold our different map backgrounds.
+const baseMaps = {
+    "Street View": streetMap,
+    "Satellite View": satelliteMap
+};
+
+// 4. Add the layers control to the map, passing in our baseMaps object.
+L.control.layers(baseMaps).addTo(map);
+
+// --- END OF MAP BACKGROUND CHANGES ---
+
 
 // Icon definitions needed for the filters
 const slaughterhouseIcon = L.icon({
@@ -36,142 +58,189 @@ const processingIcon = L.icon({
     shadowSize: [41, 41]
 });
 
-// --- Setup from your working filter version ---
+const labIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+
+// --- Setup ---
 let allLocations = [];
+let allLabLocations = [];
+
 const slaughterhouseLayer = L.layerGroup();
 const processingLayer = L.layerGroup();
+const labLayer = L.layerGroup();
+
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
+const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const stateSelector = document.getElementById('state-selector');
 
 function applyFilters() {
+    // Clear all layers before redrawing
     slaughterhouseLayer.clearLayers();
     processingLayer.clearLayers();
+    labLayer.clearLayers();
+
     const selectedState = stateSelector.value;
 
-    const locationsToShow = allLocations.filter(location => {
-        if (selectedState === 'all') return true;
-        return location.state === selectedState;
-    });
+    // --- Filter and plot USDA Slaughter/Processing Locations ---
+    const locationsToShow = allLocations.filter(location => selectedState === 'all' || location.state === selectedState);
 
     locationsToShow.forEach(location => {
+        if (!location.latitude || !location.longitude) return;
 
         const isSlaughterhouse = location.slaughter && location.slaughter.toLowerCase() === 'yes';
         const markerIcon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
 
-        // Create the marker with the correct icon
         const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
+        
+        let address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
 
-        let address = location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
-
-        let animals_slaughtered_yearly_text = "0";
-        if (location.slaughter_volume_category === "1.0") {
-            animals_slaughtered_yearly_text = "Less than 1,000 animals killed per year.";
-        } else if (location.slaughter_volume_category === "2.0") {
-            animals_slaughtered_yearly_text = "1,000 to 10,000 animals killed per year.";
-        } else if (location.slaughter_volume_category === "3.0") {
-            animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year.";
-        } else if (location.slaughter_volume_category === "4.0") {
-            animals_slaughtered_yearly_text = "100,000 to 10,000,000 animals killed per year.";
-        } else if (location.slaughter_volume_category === "5.0") {
-            animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year.";
+        let animals_slaughtered_yearly_text = "N/A";
+        if (location.slaughter_volume_category) {
+            switch (location.slaughter_volume_category) {
+                case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals killed per year."; break;
+                case "2.0": animals_slaughtered_yearly_text = "1,000 to 10,000 animals killed per year."; break;
+                case "3.0": animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year."; break;
+                case "4.0": animals_slaughtered_yearly_text = "100,000 to 10,000,000 animals killed per year."; break;
+                case "5.0": animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year."; break;
+            }
         }
 
-
         let slaughterText = "";
-        if (location.slaughter == "Yes") {
+        if (isSlaughterhouse) {
             slaughterText = `<hr>
-            <p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
-            <p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text || 'N/A'}</p>
-            `
+                <p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
+                <p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>
+                `;
         }
 
         let animals_processed_monthly_text = "N/A";
-        if (location.processing_volume_category === "1.0") {
-            animals_processed_monthly_text = "Less than 10,000 pounds of products processed per month.";
-        } else if (location.processing_volume_category === "2.0") {
-            animals_processed_monthly_text = "10,000 to 100,000 pounds of products processed per month.";
-        } else if (location.processing_volume_category === "3.0") {
-            animals_processed_monthly_text = "100,000 to 1,000,000 pounds of products processed per month.";
-        } else if (location.processing_volume_category === "4.0") {
-            animals_processed_monthly_text = "1,000,000 to 10,000,000 pounds of products processed per month.";
-        } else if (location.processing_volume_category === "5.0") {
-            animals_processed_monthly_text = "Over 10,000,000 pounds of products processed per month.";
+        if (location.processing_volume_category) {
+            switch (location.processing_volume_category) {
+                case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds of products processed per month."; break;
+                case "2.0": animals_processed_monthly_text = "10,000 to 100,000 pounds of products processed per month."; break;
+                case "3.0": animals_processed_monthly_text = "100,000 to 1,000,000 pounds of products processed per month."; break;
+                case "4.0": animals_processed_monthly_text = "1,000,000 to 10,000,000 pounds of products processed per month."; break;
+                case "5.0": animals_processed_monthly_text = "Over 10,000,000 pounds of products processed per month."; break;
+            }
         }
         
-
         let otherNamesText = "";
-        if (location.dbas.length !== 0) {
+        if (location.dbas && location.dbas.length > 0) {
             otherNamesText = `<p><strong>Doing Business As:</strong> ${location.dbas}</p>`;
         }
         
-        
-        console.log(location.dbas);
-        // Build the new, detailed HTML content for the popup
         const popupContent = `
             <div class="info-popup">
-                <h2>${location.establishment_name || 'Unknown Name'} </h2>
+                <h3>${location.establishment_name || 'Unknown Name'}</h3>
+                <p1>(${location.latitude},${location.longitude})</p1>
                 <hr>
-                <p><strong>Address:</strong> ${address || 'N/A'}</p>
-                <p><strong>Phone Number:</strong> ${location.phone || 'N/A'}</p>
+                <p><strong>Address:</strong> ${address}</p>
+                <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
                 ${otherNamesText}
                 <hr>
                 <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
-                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text || 'N/A'}</p>
+                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
                 ${slaughterText}
             </div>
         `;
 
-        // Bind the new popup content to the marker
+
         marker.bindPopup(popupContent);
 
-        // Add the marker to the correct layer based on our logic
         if (isSlaughterhouse) {
             marker.addTo(slaughterhouseLayer);
         } else {
-            // Add all non-slaughterhouses to the processing layer
             marker.addTo(processingLayer);
         }
     });
 
-    // Sync layer visibility with checkboxes
-    if (slaughterhouseCheckbox.checked) {
-        slaughterhouseLayer.addTo(map);
-    } else {
-        slaughterhouseLayer.removeFrom(map);
-    }
-    if (meatProcessingCheckbox.checked) {
-        processingLayer.addTo(map);
-    } else {
-        processingLayer.removeFrom(map);
-    }
+    // --- Filter and plot APHIS Lab Locations ---
+    const labLocationsToShow = allLabLocations.filter(lab => selectedState === 'all' || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState);
+    
+    labLocationsToShow.forEach(lab => {
+        if (lab.latitude && lab.longitude) {
+            const marker = L.marker([lab.latitude, lab.longitude], { icon: labIcon });
+
+            let labPopupContent = `
+            <div class="info-popup">
+                <h3>${lab['Account Name'] || 'Unknown Name'}</h3>
+                <p1>(${lab.latitude},${lab.longitude})</p1>
+                <hr>
+                <p><strong>Address:</strong> ${lab['Address Line 1']} ${lab['Address Line 2']} ${lab['City-State-Zip'] || 'N/A'}</p>
+                <hr>
+            </div>
+            `
+
+            marker.bindPopup(labPopupContent);
+            marker.addTo(labLayer);
+        }
+    });
+
+
+    // --- Sync visibility for ALL layers ---
+    if (slaughterhouseCheckbox.checked) slaughterhouseLayer.addTo(map); else slaughterhouseLayer.removeFrom(map);
+    if (meatProcessingCheckbox.checked) processingLayer.addTo(map); else processingLayer.removeFrom(map);
+    if (testingLabsCheckbox.checked) labLayer.addTo(map); else labLayer.removeFrom(map);
 }
 
 
 // --- Setup functions ---
 slaughterhouseCheckbox.addEventListener('change', applyFilters);
 meatProcessingCheckbox.addEventListener('change', applyFilters);
+testingLabsCheckbox.addEventListener('change', applyFilters);
 stateSelector.addEventListener('change', applyFilters);
+
+function getStateFromCityStateZip(cityStateZip) {
+    if (!cityStateZip || typeof cityStateZip !== 'string') {
+        return null;
+    }
+    // This regular expression looks for a comma, a space, and then captures two capital letters.
+    const match = cityStateZip.match(/, ([A-Z]{2})/);
+    return match ? match[1] : null;
+}
 
 async function initializeApp() {
     try {
-        // Correct for all devices
-        const response = await fetch('/api/locations');
-        allLocations = await response.json();
+        // Fetch BOTH datasets when the app starts
+        const usdaPromise = fetch('/api/locations');
+        const aphisPromise = fetch('/api/aphis-reports');
+
+        // Wait for both fetch requests to complete
+        const [usdaResponse, aphisResponse] = await Promise.all([usdaPromise, aphisPromise]);
+
+        allLocations = await usdaResponse.json();
+        allLabLocations = await aphisResponse.json();
         
-        const stateValues = allLocations.map(location => location.state);
-        const uniqueStates = [...new Set(stateValues.filter(state => state != null))];
+        // Populate dropdown from BOTH datasets to get all states
+        const usdaStates = allLocations.map(loc => loc.state);
+        const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])); 
+        const allStateValues = [...usdaStates, ...aphisStates];
+
+        const uniqueStates = [...new Set(allStateValues.filter(state => state != null))];
         uniqueStates.sort();
+        
+        // Clear existing options before adding new ones
+        stateSelector.innerHTML = '<option value="all">All States</option>';
         uniqueStates.forEach(state => {
             const option = document.createElement('option');
             option.value = state;
             option.textContent = state;
             stateSelector.appendChild(option);
         });
-        
+    
+        // Run the filters once to set the initial view
         applyFilters();
+
     } catch (error) {
-        console.error('Failed to fetch locations:', error);
+        console.error('Failed to fetch initial data:', error);
     }
 }
 

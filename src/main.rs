@@ -3,12 +3,12 @@ use axum::{
     routing::{get, get_service},
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
 use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use location::Location;
 
-use crate::location::get_slaughtered_animals;
+use crate::location::{get_slaughtered_animals, AphisReport};
 
 mod location;
 
@@ -18,6 +18,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/locations", get(get_locations_handler))
+        .route("/api/aphis-reports", get(get_aphis_reports_handler))
         .nest_service("/", get_service(ServeDir::new("static")))
         .layer(cors);
 
@@ -83,6 +84,18 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
     }
 }
 
+
+async fn get_aphis_reports_handler() -> Result<Json<Vec<AphisReport>>, (StatusCode, String)> {
+    match read_aphis_reports_from_csv("aphis_geocoded_data.csv").await {
+        Ok(data) => Ok(Json(data)),
+        Err(e) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to read APHIS data: {}", e),
+        )),
+    }
+}
+
+
 async fn read_locations_from_csv(path: &str) -> Result<Vec<Location>, Box<dyn Error>> {
     let mut locations = Vec::new();
     let mut reader = csv::Reader::from_path(path)?;
@@ -93,4 +106,31 @@ async fn read_locations_from_csv(path: &str) -> Result<Vec<Location>, Box<dyn Er
     }
 
     Ok(locations)
+}
+
+
+/// Reads the combined APHIS CSV data into a vector of AphisReport structs.
+///
+/// # Arguments
+/// * `path` - A string slice that holds the path to the CSV file.
+///
+/// # Returns
+/// * `Result<Vec<AphisReport>, Box<dyn Error>>` - A vector of parsed reports or an error.
+pub async fn read_aphis_reports_from_csv(path: &str) -> Result<Vec<AphisReport>, Box<dyn Error>> {
+    let mut reports = Vec::new();
+    let mut reader = csv::Reader::from_path(path)?;
+
+    for result in reader.deserialize() {
+        // This will skip rows that have a parsing error and print a warning,
+        // preventing the whole application from crashing.
+        match result {
+            Ok(record) => {
+                reports.push(record);
+            }
+            Err(_e) => {
+                //eprintln!("Warning: Skipping a row in '{}' due to a parsing error: {}", path, e);
+            }
+        }
+    }
+    Ok(reports)
 }
