@@ -11,7 +11,6 @@ const map = L.map('map', {
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
 
 
-// --- START OF MAP BACKGROUND CHANGES ---
 
 // 1. Define multiple map layers (tile providers)
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -34,9 +33,7 @@ const baseMaps = {
 };
 
 // 4. Add the layers control to the map, passing in our baseMaps object.
-L.control.layers(baseMaps).addTo(map);
-
-// --- END OF MAP BACKGROUND CHANGES ---
+L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 
 // Icon definitions needed for the filters
@@ -89,11 +86,16 @@ function applyFilters() {
 
     const selectedState = stateSelector.value;
 
+    const markerBounds = [];
+
+
     // --- Filter and plot USDA Slaughter/Processing Locations ---
     const locationsToShow = allLocations.filter(location => selectedState === 'all' || location.state === selectedState);
 
     locationsToShow.forEach(location => {
         if (!location.latitude || !location.longitude) return;
+
+        markerBounds.push([location.latitude, location.longitude]);
 
         const isSlaughterhouse = location.slaughter && location.slaughter.toLowerCase() === 'yes';
         const markerIcon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
@@ -168,6 +170,7 @@ function applyFilters() {
     labLocationsToShow.forEach(lab => {
         if (lab.latitude && lab.longitude) {
             const marker = L.marker([lab.latitude, lab.longitude], { icon: labIcon });
+            markerBounds.push([lab.latitude, lab.longitude]);
 
             let labPopupContent = `
             <div class="info-popup">
@@ -189,6 +192,15 @@ function applyFilters() {
     if (slaughterhouseCheckbox.checked) slaughterhouseLayer.addTo(map); else slaughterhouseLayer.removeFrom(map);
     if (meatProcessingCheckbox.checked) processingLayer.addTo(map); else processingLayer.removeFrom(map);
     if (testingLabsCheckbox.checked) labLayer.addTo(map); else labLayer.removeFrom(map);
+
+    if (selectedState !== 'all' && markerBounds.length > 0) {
+        // If a specific state is selected and we have markers, fit the map to them.
+        const bounds = L.latLngBounds(markerBounds);
+        map.fitBounds(bounds.pad(0.1)); // .pad(0.1) adds a nice margin
+    } else if (selectedState === 'all') {
+        // If "All States" is selected, reset to the default national view.
+        map.setView([38.438847, -99.579560], 4);
+    }
 }
 
 

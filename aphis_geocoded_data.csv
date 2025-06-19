@@ -296,7 +296,7 @@ University Of North Carolina (@ CHAPEL HILL),826,55-R-0004,Class R - Research Fa
 University of Alabama at Birmingham,832,64-R-0004,Class R - Research Facility,Active,,720 ADMINISTRATION BLDG,1530 3RD AVENUE SOUTH,"BIRMINGHAM, AL 35294",Jefferson,832,2024,,,,153,25,25,,207,,,,
 Auburn University,833,64-R-0005,Class R - Research Facility,Active,,Office of Vice Pres for research,202 Samford Hall,"Auburn, AL 36849",Lee,833,2024,38,52,,,,,10,74,174,,,
 University of Alabama,834,64-R-0009,Class R - Research Facility,Active,,358 ROSE ADMINISTRATION,BOX 870127,"TUSCALOOSA, AL 35487",Tuscaloosa,834,2024,,,,,,,,,,,,
-Southern Biotechnology Associates Inc,835,64-R-0018,Class R - Research Facility,Active,,PO Box 26221,,"Birmingham, AL 35260",Jefferson,835,2024,,,,,63,,,,138,,50.1045503,8.5750529
+Southern Biotechnology Associates Inc,835,64-R-0018,Class R - Research Facility,Active,,PO Box 26221,,"Birmingham, AL 35260",Jefferson,835,2024,,,,,63,,,,138,,,
 Mississippi State University,837,65-R-0002,Class R - Research Facility,Active,,PO BOX 6343,301 Research Blvd,"MISSISSIPPI STATE, MS 39762",Oktibbeha,837,2024,38,,,,,,11,,117,,33.4386876,-88.7943232
 University Of Mississippi,839,65-R-0001,Class R - Research Facility,Active,,Vice Chancellor for Research & Sponsored Programs,100 Barr Hall,"UNIVERSITY, MS 38677",Lafayette,839,2024,,,,,,,,,,,,
 University Of Tennessee - Memphis,841,63-R-0107,Class R - Research Facility,Active,,Office of Animal Care and use,910 Madison avenue Suite 650,"MEMPHIS, TN 38163",Shelby,841,2024,,,,46,62,12,,,,,,
@@ -697,7 +697,7 @@ Stautzenberger College Vet Tech Program,37219,31-R-0122,Class R - Research Facil
 Eastern Illinois University,37323,33-R-0137,Class R - Research Facility,Active,,Office of Research and Sponsored Programs,600 Lincoln Ave,"CHARLESTON, IL 61920",Coles,37323,2024,,,,,,,,,,,,
 Crowder College,37482,43-R-0118,Class R - Research Facility,Active,,601 LACLEDE AVENUE,,"NEOSHO, MO 64850",Newton,37482,2024,10,10,,,9,,17,1,,,36.8139141,-94.3679088
 Georgia Southern University,37673,57-R-0121,Class R - Research Facility,Active,,261 Forest Drive - Box 8005,,"Statesboro, GA 30460",Bulloch,37673,2024,,,,,,,,,,,,
-Direct Action Resource Center,38092,71-R-0115,Class R - Research Facility,Active,,PO Box 7207,,"Sherwood, AR 72124",Pulaski,38092,2024,,,,,,,,,5,,52.5494096,1.1716788
+Direct Action Resource Center,38092,71-R-0115,Class R - Research Facility,Active,,PO Box 7207,,"Sherwood, AR 72124",Pulaski,38092,2024,,,,,,,,,5,,,
 Translational Testing And Training Laboratories (T Three LABS),38366,57-R-0122,Class R - Research Facility,Cancelled,,387 TECHNOLOGY CIRCLE SUITE 175,,"ATLANTA, GA 30313",Fulton,38366,2024,,,,,,,13,25,4,,,
 University Of Alaska - Anchorage,38530,96-R-0006,Class R - Research Facility,Active,,3211 PROVIDENCE DRIVE,B O C ROOM 368,"ANCHORAGE, AK 99508",Anchorage,38530,2024,,,,,,,,,,,61.190379,-149.8223254
 Spring Point Project,38803,41-R-0076,Class R - Research Facility,Active,,"121 S 8th St, Ste. 822",,"Minneapolis, MN 55402",Hennepin,38803,2024,,,,,,,,141,,,,
@@ -720,7 +720,7 @@ Exemplar Genetics,42842,42-R-0044,Class R - Research Facility,Active,,PO Box 829
 The University of Tennessee - Chattanooga,43010,63-R-0126,Class R - Research Facility,Active,,615 MC CALLIE AVENUE,109 RACE HALL DEPT 4915,"CHATTANOOGA, TN 37403",Hamilton,43010,2024,,,,,,,,,,,,
 Loyola University Maryland,43300,51-R-0096,Class R - Research Facility,Cancelled,,4501 N Charles St,Attn: Biology Dept,"Baltimore, MD 21210",Baltimore city,43300,2024,,,,,,,,,,,39.3463354,-76.6218485
 NIAID-Morgan Island,43416,51-F-0030,Class F - Federal Research Facility,Active,,33 NORTH DRIVE MSC 3207,"BLDG 33, RM 2N09H","BETHESDA, MD 20892",Montgomery,43416,2024,,,,,,,,,,,,
-Simmec Training Solutions,43420,93-R-0520,Class R - Research Facility,Active,,PO Box 598,,"Oceanside, CA 92049",San Diego,43420,2024,,,,,,,,602,,,47.5837408,-52.6691656
+Simmec Training Solutions,43420,93-R-0520,Class R - Research Facility,Active,,PO Box 598,,"Oceanside, CA 92049",San Diego,43420,2024,,,,,,,,602,,,,
 Product Safety Labs,44516,22-R-0143,Class R - Research Facility,Active,,2394 US Highway 130,,"Dayton, NJ 08810",Middlesex,44516,2024,,,10329,136,2446,,,,,,,
 Omeros Corporation,44874,91-R-0082,Class R - Research Facility,Active,,201 Elliott Avenue West,,"Seattle, WA 98119",King,44874,2024,,,8,,,,,,,,47.6198801,-122.3604815
 St Cloud State University,44975,41-R-0078,Class R - Research Facility,Cancelled,,"720 4th Avenue South, A S 101",,"Saint Cloud, MN 56301",Stearns,44975,2024,,,,,,,,,,,,
