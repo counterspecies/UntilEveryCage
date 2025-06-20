@@ -69,9 +69,10 @@ const labIcon = L.icon({
 let allLocations = [];
 let allLabLocations = [];
 
-const slaughterhouseLayer = L.layerGroup();
-const processingLayer = L.layerGroup();
-const labLayer = L.layerGroup();
+
+const slaughterhouseLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
+const processingLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
+const labLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
 
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');

@@ -20,6 +20,9 @@
     <h1>Until Every Cage is Empty</h1>
 </header>
 
+
+<div id="map"></div>
+
 <div id="filter-container">
     <label for="state-selector">State:</label>
     <select id="state-selector">
@@ -28,18 +31,19 @@
     
     <hr>
     <input type="checkbox" id="slaughterhousesCheckbox" checked> 
-    <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
+    <label for="slaughterhousesCheckbox">Slaughterhouses</label>
+
+    <input type="checkbox" id="testingLabsCheckbox" checked>
+    <label for="testingLabsCheckbox">Animal Testing Labs</label>
     <p></p>
 
-    <input type="checkbox" id="meatProcessingPlantsCheckbox">
-    <label for="meatProcessingPlantsCheckbox">Show Processing-Only Facilities</label>
-    <p></p>
-    <input type="checkbox" id="testingLabsCheckbox">
-    <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
+
+    <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
+    <label for="meatProcessingPlantsCheckbox">Processing-Only Facilities</label>
+
 </div>
 
 
-<div id="map"></div>
 
 
 <!-- This single wrapper now correctly contains BOTH the manifesto and the kill counter -->
