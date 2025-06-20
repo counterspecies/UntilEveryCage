@@ -193,4 +193,50 @@ pub struct AphisReport {
     pub all_other_animals: String,
     pub latitude: f64,
     pub longitude: f64,
+    #[serde(rename = "Animals Tested On")]
+    pub animals_tested: Option<String>,
+}
+
+// This helper function safely checks if a string represents a number greater than 0.
+fn is_tested(count_str: &str) -> bool {
+    // Attempt to parse the string into an integer.
+    // If it succeeds and the number is > 0, return true. Otherwise, return false.
+    count_str.parse::<i32>().map_or(false, |num| num > 0)
+}
+
+// This function takes a reference to an AphisReport and returns the formatted string.
+// This function takes a reference to an AphisReport and returns the formatted string.
+pub fn get_tested_animals(report: &AphisReport) -> String {
+    let mut tested_animals: Vec<String> = Vec::new();
+
+    // Helper closure to reduce code repetition.
+    // It takes the count string and the animal name, and if valid, adds the formatted string to the list.
+    let mut add_if_tested = |count_str: &str, name: &str| {
+        // Attempt to parse the string into an integer.
+        // If it succeeds and the number is > 0, format it and push to the vector.
+        if let Ok(num) = count_str.parse::<i32>() {
+            if num > 0 {
+                tested_animals.push(format!("{} {}", num, name));
+            }
+        }
+    };
+
+    // Call the helper for each animal type
+    add_if_tested(&report.dogs, "Dogs");
+    add_if_tested(&report.cats, "Cats");
+    add_if_tested(&report.guinea_pigs, "Guinea Pigs");
+    add_if_tested(&report.hamsters, "Hamsters");
+    add_if_tested(&report.rabbits, "Rabbits");
+    add_if_tested(&report.non_human_primates, "Non-Human Primates");
+    add_if_tested(&report.sheep, "Sheep");
+    add_if_tested(&report.pigs, "Pigs");
+    add_if_tested(&report.other_farm_animals, "Other Farm Animals");
+    add_if_tested(&report.all_other_animals, "All Other Animals");
+
+    // If no animals were found, return "N/A". Otherwise, join the list.
+    if tested_animals.is_empty() {
+        "Unknown".to_string()
+    } else {
+        tested_animals.join(", ")
+    }
 }

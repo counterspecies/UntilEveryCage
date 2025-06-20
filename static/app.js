@@ -178,6 +178,11 @@ function applyFilters() {
                 <p1>(${lab.latitude},${lab.longitude})</p1>
                 <hr>
                 <p><strong>Address:</strong> ${lab['Address Line 1']} ${lab['Address Line 2']} ${lab['City-State-Zip'] || 'N/A'}</p>
+                <p><strong>Customer Number:</strong> ${lab['Customer Number_x'] || 'N/A'}</p>
+                <p><strong>Certificate Number:</strong> ${lab['Certificate Number'] || 'N/A'}</p>
+                <p><strong>Certificate Status:</strong> ${lab['Certificate Status'] || 'N/A'} as of 2024 </p>
+                <p><strong>Registration Type:</strong> ${lab['Registration Type'] || 'N/A'}</p>
+                <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
                 <hr>
             </div>
             `

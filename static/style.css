@@ -83,8 +83,8 @@ hr {
     background-color: #e9ecef; /* A slightly darker background for UI controls */
     flex-wrap: wrap;
     max-width: 100%;
-    margin-left: 8%;
-    margin-right: 8%;
+    margin-left: 5%;
+    margin-right: 5%;
     gap: 1.5rem;
     align-items: center;
     justify-content: center;
@@ -110,11 +110,7 @@ hr {
 /* --- Map & Popups --- */
 #map {
     height: 70vh; /* Make map taller, relative to viewport height */
-    max-width: 100%;
-    margin-left: 8%;
-    margin-right: 8%;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    width: 100%;
 }
 
 .info-popup h3 {
@@ -138,56 +134,29 @@ hr {
     margin: 0.5rem 0;
 }
 
+/* --- STYLES FOR SIDE-BY-SIDE LAYOUT (Corrected) --- */
 .content-wrapper {
     display: flex;
-    flex-direction: row; /* Arrange items in a row */
-    gap: 2rem; /* Space between the two columns */
-    align-items: flex-start; /* Align items to the top */
-    max-width: 100%;
-    margin-left: 8%;
-    margin-right: 8%;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    box-sizing: border-box;
-}
-
-
-/* Targets the container for the map view switcher */
-.leaflet-control-layers-expanded {
-    font-size: 1.3em; /* Makes the font about 10% larger */
-    padding: 8px;   /* Adds a little more space inside the box */
-}
-
-/* --- STYLES FOR SIDE-BY-SIDE LAYOUT --- */
-.content-wrapper {
-    display: flex;
-    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+    flex-wrap: wrap;    /* This is key for responsiveness */
+    justify-content: center; /* This helps center the items */
     gap: 2rem;
-    align-items: flex-start; /* Aligns columns to the top */
-    
-    /* These properties make it align with your map and filter container */
-    max-width: 100%;
-    margin-left: 8%;
-    margin-right: 8%;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    
-    box-sizing: border-box; /* Ensures padding/borders don't break the layout */
+    padding: 2rem 1rem; /* Padding adds space on the sides, better than margin */
 }
 
-/* This makes both children take up equal space */
 .content-wrapper .manifesto-container,
 .content-wrapper .kill-counter-container {
-    flex: 1; /* Both will grow and shrink equally */
-    min-width: 350px; /* Prevents them from getting too squished */
-    margin: 0; /* Reset margin as the wrapper handles it */
+    flex: 1 1 400px; /* This allows items to grow and shrink from a base size of 400px */
+    max-width: 700px;  /* Prevents them from getting too wide on large screens */
+    margin: 0;
+    box-sizing: border-box;
 }
 
 /* Media query for smaller screens */
 @media (max-width: 992px) {
     .content-wrapper {
-        flex-direction: column; /* Stack the items vertically */
-        align-items: center;    /* Center the items when stacked */
+        flex-direction: column;
+        align-items: center;
+        padding: 0 1rem; /* Adds a bit of space on the sides on mobile */
     }
 }
 

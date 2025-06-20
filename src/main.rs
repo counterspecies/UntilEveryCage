@@ -8,7 +8,7 @@ use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use location::Location;
 
-use crate::location::{get_slaughtered_animals, AphisReport};
+use crate::location::{get_slaughtered_animals, get_tested_animals, AphisReport};
 
 mod location;
 
@@ -22,7 +22,7 @@ async fn main() {
         .nest_service("/", get_service(ServeDir::new("static")))
         .layer(cors);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
     println!("listening on http://{}", listener.local_addr().unwrap());
     println!("Local website: http://192.168.0.97:3000");
@@ -124,7 +124,9 @@ pub async fn read_aphis_reports_from_csv(path: &str) -> Result<Vec<AphisReport>,
         // This will skip rows that have a parsing error and print a warning,
         // preventing the whole application from crashing.
         match result {
-            Ok(record) => {
+            Ok(mut record) => {
+                let animals_tested = get_tested_animals(&record);
+                record.animals_tested = Some(animals_tested);
                 reports.push(record);
             }
             Err(_e) => {
