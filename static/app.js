@@ -36,32 +36,41 @@ const baseMaps = {
 L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 
-// Icon definitions needed for the filters
-const slaughterhouseIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+// --- SVG Icon Definitions ---
+
+// A helper function to generate the SVG string with a dynamic color
+function createSVGIcon(color) {
+    const svgTemplate = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="marker">
+            <path fill-opacity=".25" d="M16 32s1.427-9.585 3.761-12.025c4.595-4.805 8.685-.99 8.685-.99s4.044 3.964-2.298 10.999S16 32 16 32z"/>
+            <path fill="${color}" stroke="#000" stroke-width="0.5" d="M16 0C9.37 0 4 5.37 4 12c0 8.754 11.834 20 12 20s12-11.246 12-20C28 5.37 22.63 0 16 0zm0 16a4 4 0 110-8 4 4 0 010 8z"/>
+        </svg>`;
+    return svgTemplate;
+}
+
+// Create the icons using L.divIcon and our SVG helper function
+const slaughterhouseIcon = L.divIcon({
+    html: createSVGIcon('#d90429'), // A strong red
+    className: 'svg-icon', // This class removes the default white box
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
 });
 
-const processingIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+const processingIcon = L.divIcon({
+    html: createSVGIcon('#6c757d'), // A neutral grey
+    className: 'svg-icon',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
 });
 
-const labIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+const labIcon = L.divIcon({
+    html: createSVGIcon('#8a2be2'), // A distinct violet
+    className: 'svg-icon',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
 });
 
 
@@ -69,9 +78,11 @@ const labIcon = L.icon({
 let allLocations = [];
 let allLabLocations = [];
 
-const slaughterhouseLayer = L.layerGroup();
-const processingLayer = L.layerGroup();
-const labLayer = L.layerGroup();
+// This is the optimized version
+// This is the updated version
+const slaughterhouseLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
+const processingLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
+const labLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
 
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
@@ -145,6 +156,7 @@ function applyFilters() {
                 <p1>(${location.latitude},${location.longitude})</p1>
                 <hr>
                 <p><strong>Address:</strong> ${address}</p>
+                <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
                 <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
                 ${otherNamesText}
                 <hr>

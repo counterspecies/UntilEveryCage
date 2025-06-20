@@ -175,3 +175,9 @@ hr {
     letter-spacing: 1px;
     color: rgb(217, 217, 217)
 }
+
+/* --- Style for SVG Marker Icons --- */
+.svg-icon {
+    background: transparent;
+    border: none;
+}

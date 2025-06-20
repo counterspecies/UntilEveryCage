@@ -34,6 +34,7 @@ async fn main() {
 
 #[derive(Serialize, Debug)]
 struct LocationResponse {
+    establishment_id: String,
     establishment_name: String,
     latitude: f64,
     longitude: f64,
@@ -58,6 +59,7 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
                 .map(|loc| {
                     let animals_slaughtered = get_slaughtered_animals(&loc);
                     LocationResponse {
+                        establishment_id: loc.establishment_id,
                         establishment_name: loc.establishment_name,
                         latitude: loc.latitude,
                         longitude: loc.longitude,
