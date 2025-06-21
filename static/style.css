@@ -178,6 +178,10 @@ hr {
 
 /* --- Style for SVG Marker Icons --- */
 .svg-icon {
-    background: transparent;
+    background: none;
     border: none;
+    /* The shadow is now cast upwards (-2px) to remove the "floating" look.
+      This implies a light source from below.
+    */
+    filter: drop-shadow(0.25rem -0.1rem 2px rgba(0, 0, 0, 0.5));
 }
