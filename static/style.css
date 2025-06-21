@@ -185,3 +185,19 @@ hr {
     */
     filter: drop-shadow(0.25rem -0.1rem 2px rgba(0, 0, 0, 0.5));
 }
+
+/* Styling for the final, custom text button on the map */
+.leaflet-control-custom-fullscreen a {
+    background-color: white;
+    color: #333;
+    text-decoration: none;
+    padding: 2px 8px; /* Give the text some space */
+    font: bold 13px/22px 'Helvetica Neue', Arial, Helvetica, sans-serif; /* Style the text */
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    cursor: pointer;
+}
+
+.leaflet-control-custom-fullscreen a:hover {
+    background-color: #f4f4f4;
+}

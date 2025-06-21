@@ -197,12 +197,6 @@ pub struct AphisReport {
     pub animals_tested: Option<String>,
 }
 
-// This helper function safely checks if a string represents a number greater than 0.
-fn is_tested(count_str: &str) -> bool {
-    // Attempt to parse the string into an integer.
-    // If it succeeds and the number is > 0, return true. Otherwise, return false.
-    count_str.parse::<i32>().map_or(false, |num| num > 0)
-}
 
 // This function takes a reference to an AphisReport and returns the formatted string.
 // This function takes a reference to an AphisReport and returns the formatted string.

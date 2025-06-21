@@ -4,11 +4,63 @@ const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
-// 2. Add the maxBounds options when creating the map.
+
+L.Control.CustomFullscreen = L.Control.extend({
+    options: {
+        position: 'topleft',
+        enterText: 'Enter', // Changed to this shorter text
+        exitText: 'Exit'
+    },
+
+
+    onAdd: function (map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-fullscreen');
+        this.link = L.DomUtil.create('a', '', container);
+        this.link.href = '#';
+        this.link.innerHTML = this.options.enterText;
+
+        this._map = map;
+
+        // CORRECTED: Listen to the document's fullscreenchange event
+        L.DomEvent.on(document, 'fullscreenchange', this._onFullscreenChange, this);
+
+        L.DomEvent.on(container, 'click', L.DomEvent.stop);
+        L.DomEvent.on(container, 'click', this._toggleFullscreen, this);
+
+        return container;
+    },
+
+    // Add an on Remove method to clean up the event listener
+    onRemove: function (map) {
+        L.DomEvent.off(document, 'fullscreenchange', this._onFullscreenChange, this);
+    },
+
+    _toggleFullscreen: function () {
+        if (!document.fullscreenElement) {
+            this._map.getContainer().requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    },
+
+    // This will now be called correctly
+    _onFullscreenChange: function () {
+        if (document.fullscreenElement === this._map.getContainer()) {
+            this.link.innerHTML = this.options.exitText;
+        } else {
+            this.link.innerHTML = this.options.enterText;
+        }
+    }
+});
+
 const map = L.map('map', {
     maxBounds: worldBounds,      // Restricts the view to our defined bounds
     maxBoundsViscosity: 0.1      // Makes the bounds solid like a wall (no bouncing)
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
+
+map.addControl(new L.Control.CustomFullscreen());
 
 // 1. Define multiple map layers (tile providers)
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -44,17 +96,11 @@ const labSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill
 
 
 const slaughterhouseIcon = L.icon({
-
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-
     iconSize: [25, 41],
-
     iconAnchor: [12, 41],
-
     popupAnchor: [1, -34],
-
     shadowSize: [41, 41]
 
 });
