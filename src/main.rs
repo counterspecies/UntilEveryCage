@@ -64,7 +64,7 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
                         latitude: loc.latitude,
                         longitude: loc.longitude,
                         activities: loc.activities,
-                        state: loc.state,
+                        state: loc.state, 
                         slaughter: loc.slaughter,
                         animals_slaughtered,
                         city: loc.city,
