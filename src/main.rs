@@ -23,7 +23,7 @@ async fn main() -> shuttle_axum::ShuttleAxum {
 }
 
 async fn get_locations_handler() -> impl IntoResponse {
-    match read_locations_from_csv().await {
+     match read_locations_from_csv().await {
         Ok(locations) => Json(locations).into_response(),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,

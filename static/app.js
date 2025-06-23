@@ -323,33 +323,38 @@ function getStateFromCityStateZip(cityStateZip) {
     return match ? match[1] : null;
 }
 
+// In app.js
+
 async function initializeApp() {
     try {
-        // Fetch BOTH datasets when the app starts
-        console.log("Attempting to fetch data from Shuttle...");
+        console.log("Fetching both USDA and APHIS datasets...");
 
-        // We only need to debug one of the fetch calls for now.
-        const response = await fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports');
-        
-        console.log("Received a response from the server.");
-        console.log("Status Code:", response.status);
+        // Define the promises to fetch both datasets from your live backend
+        const usdaPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/locations');
+        const aphisPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports');
 
-        // Clone the response so we can read its text content without consuming the body
-        const responseText = await response.clone().text();
-        
-        console.log("--- START OF RAW RESPONSE FROM SERVER ---");
-        console.log(responseText);
-        console.log("---  END OF RAW RESPONSE FROM SERVER  ---");
+        // Wait for both requests to complete
+        const [usdaResponse, aphisResponse] = await Promise.all([usdaPromise, aphisPromise]);
 
-        // Now, proceed with the original logic
-        allLabLocations = await response.json(); // This is the line that is likely failing
-        
-        // For now, we'll use an empty array for the other dataset
-        allLocations = []; 
+        // Check if the APHIS request was successful before trying to parse it
+        if (!aphisResponse.ok) {
+            // Throw an error that we can catch below
+            throw new Error(`APHIS data request failed with status: ${aphisResponse.status}`);
+        }
+        allLabLocations = await aphisResponse.json();
+        console.log("Successfully loaded APHIS lab data.");
 
-        // ... now call the rest of your original logic
+        // Check if the USDA request was successful before trying to parse it
+        if (!usdaResponse.ok) {
+            // Throw an error that we can catch below
+            throw new Error(`USDA data request failed with status: ${usdaResponse.status}`);
+        }
+        allLocations = await usdaResponse.json();
+        console.log("Successfully loaded USDA location data.");
+
+        // --- The rest of your function remains the same ---
         const usdaStates = allLocations.map(loc => loc.state);
-        const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])); 
+        const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip']));
         const allStateValues = [...usdaStates, ...aphisStates];
         const uniqueStates = [...new Set(allStateValues.filter(state => state != null))];
         uniqueStates.sort();
@@ -363,8 +368,11 @@ async function initializeApp() {
         applyFilters();
 
     } catch (error) {
+        // This will now catch any fetch error and log it clearly
         console.error('Failed to fetch initial data:', error);
+        alert(`There was a critical error fetching data from the server. Please check the developer console for details. One of the API endpoints may be down.\n\nError: ${error.message}`);
     }
 }
 
+// Make sure you call the function to start the app
 initializeApp();
