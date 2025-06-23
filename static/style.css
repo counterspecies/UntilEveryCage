@@ -109,7 +109,9 @@ hr {
 
 /* --- Map & Popups --- */
 #map {
-    height: 65vh; /* Make map taller, relative to viewport height */
+    height: 72vh; /* Make map taller, relative to viewport height */
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 .info-popup h3 {
@@ -237,11 +239,12 @@ hr {
 
 /* 2. Makes the Layers (Street/Satellite) control bigger */
 .leaflet-control-layers {
-    padding: 8px; /* Adds more space inside the box */
+    padding: 5px; /* Adds more space inside the box */
+    border-radius: 8px; /* Rounds the corners */
 }
 
 .leaflet-control-layers-base label {
-    font-size: 20px; /* Increases the text size */
+    font-size: 30px; /* Increases the text size */
     line-height: 1.5; /* Adds more space between the two lines */
 }
 

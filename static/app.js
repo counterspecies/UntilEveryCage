@@ -4,130 +4,94 @@ const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
+// Your Custom Fullscreen control is preserved
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
         position: 'topleft',
-        enterText: 'Fullscreen',
+        enterText: 'Full',
         exitText: 'Exit'
     },
-
     onAdd: function (map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-fullscreen');
         this.link = L.DomUtil.create('a', '', container);
         this.link.href = '#';
         this.link.innerHTML = this.options.enterText;
-
         this._map = map;
-
-        // Listen for native fullscreen changes
         L.DomEvent.on(document, 'fullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.on(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.on(document, 'mozfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.on(document, 'msfullscreenchange', this._onFullscreenChange, this);
-
-        // Listen for clicks on the button
         L.DomEvent.on(container, 'click', L.DomEvent.stop);
         L.DomEvent.on(container, 'click', this._toggleFullscreen, this);
-
         return container;
     },
-
     onRemove: function (map) {
         L.DomEvent.off(document, 'fullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.off(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.off(document, 'mozfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.off(document, 'msfullscreenchange', this._onFullscreenChange, this);
     },
-
-    // This function now handles all cases (native and pseudo)
     _toggleFullscreen: function () {
         const container = this._map.getContainer();
-
-        // 1. Check if we are in pseudo-fullscreen mode (for iOS)
         if (L.DomUtil.hasClass(container, 'map-pseudo-fullscreen')) {
             L.DomUtil.removeClass(container, 'map-pseudo-fullscreen');
             this.link.innerHTML = this.options.enterText;
-            this._map.invalidateSize(); // Tell Leaflet to redraw
+            this._map.invalidateSize();
             return;
         }
-
-        // 2. Check for native fullscreen element
         const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-
         if (fullscreenElement) {
-            // Exit native fullscreen
             const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
             if (exitMethod) {
                 exitMethod.call(document);
             }
             return;
         }
-        
-        // 3. If not in any fullscreen, try to enter
         const requestMethod = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
-
         if (requestMethod) {
-            // Try native fullscreen first
             requestMethod.call(container);
         } else {
-            // Fallback to pseudo-fullscreen for iOS and older browsers
             L.DomUtil.addClass(container, 'map-pseudo-fullscreen');
             this.link.innerHTML = this.options.exitText;
-            this._map.invalidateSize(); // Tell Leaflet to redraw
+            this._map.invalidateSize();
         }
     },
-
-    // This function only needs to handle native fullscreen changes (like pressing Esc)
     _onFullscreenChange: function () {
         const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        
         if (fullscreenElement === this._map.getContainer()) {
             this.link.innerHTML = this.options.exitText;
         } else {
-            L.DomUtil.removeClass(this._map.getContainer(), 'map-pseudo-fullscreen'); // Ensure pseudo is also removed
+            L.DomUtil.removeClass(this._map.getContainer(), 'map-pseudo-fullscreen');
             this.link.innerHTML = this.options.enterText;
         }
     }
 });
 
 const map = L.map('map', {
-    maxBounds: worldBounds,      // Restricts the view to our defined bounds
-    maxBoundsViscosity: 0.1      // Makes the bounds solid like a wall (no bouncing)
+    maxBounds: worldBounds,
+    maxBoundsViscosity: 0.1
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
 
 map.addControl(new L.Control.CustomFullscreen());
 
-// Define multiple map layers (tile providers)
+// Define multiple map layers
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
 });
-
 const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    attribution: 'Tiles &copy; Esri'
 });
-
-// Add one of the layers to the map by default (this will be the initial view)
 streetMap.addTo(map);
 
-//Create a 'baseMaps' object to hold our different map backgrounds.
 const baseMaps = {
     "Street View": streetMap,
     "Satellite View": satelliteMap
 };
-
-//Add the layers control to the map, passing in our baseMaps object.
 L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
-
-// Define the SVG markup for our icons. The fill color is changed for each category.
-const slaughterhouseSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#D73737" width="30px" height="42px"><path d="M12 0C7.802 0 4 3.802 4 8.5c0 4.803 7.055 14.823 7.421 15.32a.987.987 0 0 0 1.158 0C12.945 23.323 20 13.303 20 8.5 20 3.802 16.198 0 12 0Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
-const processingSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#808080" width="30px" height="42px"><path d="M12 0C7.802 0 4 3.802 4 8.5c0 4.803 7.055 14.823 7.421 15.32a.987.987 0 0 0 1.158 0C12.945 23.323 20 13.303 20 8.5 20 3.802 16.198 0 12 0Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
-const labSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#8A2BE2" width="30px" height="42px"><path d="M12 0C7.802 0 4 3.802 4 8.5c0 4.803 7.055 14.823 7.421 15.32a.987.987 0 0 0 1.158 0C12.945 23.323 20 13.303 20 8.5 20 3.802 16.198 0 12 0Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
-
-
-
+// Using your PNG icon definitions
 const slaughterhouseIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -135,10 +99,7 @@ const slaughterhouseIcon = L.icon({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41]
-
 });
-
-
 const processingIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -147,8 +108,6 @@ const processingIcon = L.icon({
     popupAnchor: [1, -34],
     shadowSize: [41, 41]
 });
-
-
 const labIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -158,48 +117,61 @@ const labIcon = L.icon({
     shadowSize: [41, 41]
 });
 
-
-
 // --- Setup ---
 let allLocations = [];
 let allLabLocations = [];
 
-// This is the optimized version
-const slaughterhouseLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
-const processingLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
-const labLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
+// Both clustered and non-clustered layers
+const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
+const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
+const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
 
+const slaughterhouseFeatureLayer = L.layerGroup();
+const processingFeatureLayer = L.layerGroup();
+const labFeatureLayer = L.layerGroup();
+
+// DOM element references
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
 const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const stateSelector = document.getElementById('state-selector');
 
-function applyFilters() {
-    // Clear all layers before redrawing
-    slaughterhouseLayer.clearLayers();
-    processingLayer.clearLayers();
-    labLayer.clearLayers();
 
+// --- MODIFIED: The function now accepts a parameter to control view changes ---
+function applyFilters(shouldUpdateView = false) {
     const selectedState = stateSelector.value;
+    const isAllStatesView = selectedState === 'all';
+
+    // Clear all possible layers to ensure a clean slate
+    slaughterhouseClusterLayer.clearLayers();
+    processingClusterLayer.clearLayers();
+    labClusterLayer.clearLayers();
+    slaughterhouseFeatureLayer.clearLayers();
+    processingFeatureLayer.clearLayers();
+    labFeatureLayer.clearLayers();
+    
+    // Remove all layers from map before re-adding the correct ones
+    map.removeLayer(slaughterhouseClusterLayer);
+    map.removeLayer(processingClusterLayer);
+    map.removeLayer(labClusterLayer);
+    map.removeLayer(slaughterhouseFeatureLayer);
+    map.removeLayer(processingFeatureLayer);
+    map.removeLayer(labFeatureLayer);
 
     const markerBounds = [];
 
-
-    // --- Filter and plot USDA Slaughter/Processing Locations ---
-    const locationsToShow = allLocations.filter(location => selectedState === 'all' || location.state === selectedState);
-
+    // Filter and plot USDA Slaughter/Processing Locations
+    const locationsToShow = allLocations.filter(location => isAllStatesView || location.state === selectedState);
     locationsToShow.forEach(location => {
         if (!location.latitude || !location.longitude) return;
-
-        markerBounds.push([location.latitude, location.longitude]);
+        if (!isAllStatesView) markerBounds.push([location.latitude, location.longitude]);
 
         const isSlaughterhouse = location.slaughter && location.slaughter.toLowerCase() === 'yes';
         const markerIcon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
-
         const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
         
         let address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
-
+       
         let animals_slaughtered_yearly_text = "N/A";
         if (location.slaughter_volume_category) {
             switch (location.slaughter_volume_category) {
@@ -253,25 +225,22 @@ function applyFilters() {
                 ${slaughterText}
             </div>
         `;
-
-
         marker.bindPopup(popupContent);
 
+        // Add marker to the correct layer type (clustered or not)
         if (isSlaughterhouse) {
-            marker.addTo(slaughterhouseLayer);
+            isAllStatesView ? slaughterhouseClusterLayer.addLayer(marker) : slaughterhouseFeatureLayer.addLayer(marker);
         } else {
-            marker.addTo(processingLayer);
+            isAllStatesView ? processingClusterLayer.addLayer(marker) : processingFeatureLayer.addLayer(marker);
         }
     });
 
-    // --- Filter and plot APHIS Lab Locations ---
-    const labLocationsToShow = allLabLocations.filter(lab => selectedState === 'all' || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState);
-    
+    // Filter and plot APHIS Lab Locations
+    const labLocationsToShow = allLabLocations.filter(lab => isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState);
     labLocationsToShow.forEach(lab => {
         if (lab.latitude && lab.longitude) {
+            if (!isAllStatesView) markerBounds.push([lab.latitude, lab.longitude]);
             const marker = L.marker([lab.latitude, lab.longitude], { icon: labIcon });
-            markerBounds.push([lab.latitude, lab.longitude]);
-
             let labPopupContent = `
             <div class="info-popup">
                 <h3>${lab['Account Name'] || 'Unknown Name'}</h3>
@@ -288,70 +257,62 @@ function applyFilters() {
             `
 
             marker.bindPopup(labPopupContent);
-            marker.addTo(labLayer);
+
+            isAllStatesView ? labClusterLayer.addLayer(marker) : labFeatureLayer.addLayer(marker);
         }
     });
 
-
-    // --- Sync visibility for ALL layers ---
-    if (slaughterhouseCheckbox.checked) slaughterhouseLayer.addTo(map); else slaughterhouseLayer.removeFrom(map);
-    if (meatProcessingCheckbox.checked) processingLayer.addTo(map); else processingLayer.removeFrom(map);
-    if (testingLabsCheckbox.checked) labLayer.addTo(map); else labLayer.removeFrom(map);
-
-    if (selectedState !== 'all' && markerBounds.length > 0) {
-        // If a specific state is selected and we have markers, fit the map to them.
-        const bounds = L.latLngBounds(markerBounds);
-        map.fitBounds(bounds.pad(0.1)); // .pad(0.1) adds a nice margin
-    } else if (selectedState === 'all') {
-        // If "All States" is selected, reset to the default national view.
-        map.setView([38.438847, -99.579560], 4);
+    // Sync visibility for the correct set of layers
+    if (isAllStatesView) {
+        if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseClusterLayer);
+        if (meatProcessingCheckbox.checked) map.addLayer(processingClusterLayer);
+        if (testingLabsCheckbox.checked) map.addLayer(labClusterLayer);
+    } else {
+        if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseFeatureLayer);
+        if (meatProcessingCheckbox.checked) map.addLayer(processingFeatureLayer);
+        if (testingLabsCheckbox.checked) map.addLayer(labFeatureLayer);
+    }
+    
+    // --- MODIFIED: This block now only runs if shouldUpdateView is true ---
+    if (shouldUpdateView) {
+        if (!isAllStatesView && markerBounds.length > 0) {
+            const bounds = L.latLngBounds(markerBounds);
+            map.fitBounds(bounds.pad(0.1));
+        } else if (isAllStatesView) {
+            map.setView([38.438847, -99.579560], 4);
+        }
     }
 }
 
-
-// --- Setup functions ---
-slaughterhouseCheckbox.addEventListener('change', applyFilters);
-meatProcessingCheckbox.addEventListener('change', applyFilters);
-testingLabsCheckbox.addEventListener('change', applyFilters);
-stateSelector.addEventListener('change', applyFilters);
+// --- MODIFIED: Event listeners now pass a parameter ---
+slaughterhouseCheckbox.addEventListener('change', () => applyFilters(false));
+meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
+testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
+stateSelector.addEventListener('change', () => applyFilters(true)); // Only this one updates the view
 
 function getStateFromCityStateZip(cityStateZip) {
-    if (!cityStateZip || typeof cityStateZip !== 'string') {
-        return null;
-    }
-    // This regular expression looks for a comma, a space, and then captures two capital letters.
+    if (!cityStateZip || typeof cityStateZip !== 'string') return null;
     const match = cityStateZip.match(/, ([A-Z]{2})/);
     return match ? match[1] : null;
 }
 
 async function initializeApp() {
+    // Assuming you have a loader element in your HTML with id="loader-overlay"
+    const loader = document.getElementById('loader-overlay'); 
     try {
-        console.log("Fetching both USDA and APHIS datasets...");
+        if(loader) loader.style.display = 'flex';
 
-        // Define the promises to fetch both datasets from your live backend
         const usdaPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/locations');
         const aphisPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports');
 
-        // Wait for both requests to complete
         const [usdaResponse, aphisResponse] = await Promise.all([usdaPromise, aphisPromise]);
 
-        // Check if the APHIS request was successful before trying to parse it
-        if (!aphisResponse.ok) {
-            // Throw an error that we can catch below
-            throw new Error(`APHIS data request failed with status: ${aphisResponse.status}`);
-        }
-        allLabLocations = await aphisResponse.json();
-        console.log("Successfully loaded APHIS lab data.");
+        if (!usdaResponse.ok) throw new Error(`USDA data request failed: ${usdaResponse.status}`);
+        if (!aphisResponse.ok) throw new Error(`APHIS data request failed: ${aphisResponse.status}`);
 
-        // Check if the USDA request was successful before trying to parse it
-        if (!usdaResponse.ok) {
-            // Throw an error that we can catch below
-            throw new Error(`USDA data request failed with status: ${usdaResponse.status}`);
-        }
         allLocations = await usdaResponse.json();
-        console.log("Successfully loaded USDA location data.");
-
-        // --- The rest of your function remains the same ---
+        allLabLocations = await aphisResponse.json();
+        
         const usdaStates = allLocations.map(loc => loc.state);
         const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip']));
         const allStateValues = [...usdaStates, ...aphisStates];
@@ -364,14 +325,16 @@ async function initializeApp() {
             option.textContent = state;
             stateSelector.appendChild(option);
         });
-        applyFilters();
+
+        // The first call to applyFilters should update the view
+        applyFilters(true);
 
     } catch (error) {
-        // This will now catch any fetch error and log it clearly
         console.error('Failed to fetch initial data:', error);
-        alert(`There was a critical error fetching data from the server. Please check the developer console for details. One of the API endpoints may be down.\n\nError: ${error.message}`);
+        alert(`There was a critical error fetching data from the server: ${error.message}`);
+    } finally {
+        if(loader) loader.style.display = 'none';
     }
 }
 
-// Make sure you call the function to start the app
 initializeApp();
