@@ -165,9 +165,9 @@ let allLocations = [];
 let allLabLocations = [];
 
 // This is the optimized version
-const slaughterhouseLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
-const processingLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
-const labLayer = L.markerClusterGroup({ disableClusteringAtZoom: 9 });
+const slaughterhouseLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
+const processingLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
+const labLayer = L.markerClusterGroup({ disableClusteringAtZoom: 10 });
 
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
