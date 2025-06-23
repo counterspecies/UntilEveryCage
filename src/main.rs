@@ -110,14 +110,6 @@ async fn read_locations_from_csv(path: &str) -> Result<Vec<Location>, Box<dyn Er
     Ok(locations)
 }
 
-
-/// Reads the combined APHIS CSV data into a vector of AphisReport structs.
-///
-/// # Arguments
-/// * `path` - A string slice that holds the path to the CSV file.
-///
-/// # Returns
-/// * `Result<Vec<AphisReport>, Box<dyn Error>>` - A vector of parsed reports or an error.
 pub async fn read_aphis_reports_from_csv(path: &str) -> Result<Vec<AphisReport>, Box<dyn Error>> {
     let mut reports = Vec::new();
     let mut reader = csv::Reader::from_path(path)?;

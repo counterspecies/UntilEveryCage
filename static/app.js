@@ -121,8 +121,6 @@ const baseMaps = {
 L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 
-// --- NEW SVG ICON DEFINITIONS ---
-
 // Define the SVG markup for our icons. The fill color is changed for each category.
 const slaughterhouseSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#D73737" width="30px" height="42px"><path d="M12 0C7.802 0 4 3.802 4 8.5c0 4.803 7.055 14.823 7.421 15.32a.987.987 0 0 0 1.158 0C12.945 23.323 20 13.303 20 8.5 20 3.802 16.198 0 12 0Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
 const processingSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#808080" width="30px" height="42px"><path d="M12 0C7.802 0 4 3.802 4 8.5c0 4.803 7.055 14.823 7.421 15.32a.987.987 0 0 0 1.158 0C12.945 23.323 20 13.303 20 8.5 20 3.802 16.198 0 12 0Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
