@@ -199,7 +199,6 @@ pub struct AphisReport {
 
 
 // This function takes a reference to an AphisReport and returns the formatted string.
-// This function takes a reference to an AphisReport and returns the formatted string.
 pub fn get_tested_animals(report: &AphisReport) -> String {
     let mut tested_animals: Vec<String> = Vec::new();
 

@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-
-    <!-- This single link now controls all your site's styling -->
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -31,13 +29,13 @@
     <hr>
     <input type="checkbox" id="slaughterhousesCheckbox" checked> 
     <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
+    
+    <input type="checkbox" id="testingLabsCheckbox" checked>
+    <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
+    <p></p>
 
     <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
     <label for="meatProcessingPlantsCheckbox">Show Processing-Only Facilities</label>
-    <p></p>
-
-    <input type="checkbox" id="testingLabsCheckbox" checked>
-    <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
 </div>
 
 
@@ -46,56 +44,51 @@
 <div class="content-wrapper">
     <div class="manifesto-container">
         <h1>Until Every Cage is Empty</h1>
-            <p>
-                Behind the silent walls of concrete and steel, a war is being waged against the innocent. This is not a metaphor. It is a systematic, industrial-scale extermination, hidden from public view but happening every second of every day.
-            </p>
-            <p>
-                The machine of this industry is vast, but it is not invisible. It is comprised of thousands of facilities, each a node in a chain of suffering. In the United States alone, this machine extinguishes over <strong>9 billion chickens</strong> every single year. More than <strong>120 million pigs</strong> and <strong>30 million cows</strong> meet the same fate. They are born into confinement, live in darkness, and die in terror.
-            </p>
-            <p>
-                They are individuals, each with a will to live, a capacity for fear, and a desire for freedom. Yet they are treated as mere resources—units of production to be processed.
-            </p>
-            <p>
-                The map you see is a blueprint of this oppression. Each red pin is not a data point; it is a prison, a place of death. Each grey pin is a processing facility where their dismembered bodies are packaged for consumption. Each violet pin is a laboratory where their cries go unheard behind sterile walls.
-            </p>
-            <p>
-                We publish this information not as a passive list, but as a call to conscience. We believe that every cage, every transport truck, every kill floor is a moral atrocity.
-            </p>
-            <p>
-                There is no justification for this tyranny. There is no humane way to take a life that does not want to be taken. The only just, the only compassionate, the only moral response is <strong>total liberation</strong>.
-            </p>
-            <p>
-                Our goal is not reform. It is not bigger cages or "less cruel" methods. Our goal is empty cages.
-            </p>
-            <p style="font-weight: bold; font-style: italic;">
-                We see you. We hear your cries. We will not stop until every cage is empty.
-            </p>
+
+        <p>Let's be brutally clear: behind the reinforced concrete and locked gates, an ongoing atrocity is unfolding. This is not some distant threat; it is a <strong>full-scale war against the innocent</strong>, happening <strong>right now</strong>. An industrial machine of death is operating without pause, fueled by your complacency.</p>
+
+        <p>This machine is vast, but its workings are simple: confinement, torture, and systematic slaughter. Every single year, over <strong>9 billion chickens</strong> are shackled upside down, their throats slit by automated blades, with many boiled alive in scalding feather-removal tanks. Alongside them, <strong>120 million pigs</strong> are herded into gas chambers, screaming as CO2 burns their lungs from the inside out, while <strong>30 million cows</strong> have a steel bolt shot through their skull before being hoisted by a leg to bleed out, often while still conscious. This is <strong>not an accident; it is the intended outcome.</strong></p>
+
+        <p>The individuals trapped within this system are not commodities. They are sentient beings with an undeniable will to live, a profound capacity for fear, and an inherent right to freedom. To treat them as mere units of production is not just unethical—it is a profound moral failure that stains our collective conscience.</p>
+
+        <p>Forget your calls for kinder cruelty. There is no such thing. To advocate for bigger cages or "humane" slaughter is to tinker at the edges of a fundamentally evil enterprise. We are not seeking to reform injustice; we are here to dismantle it entirely. You cannot negotiate ethics with those who profit from pain.</p>
+
+        <p>There is no conceivable justification for this ongoing tyranny. Every single life taken within this system is a moral outrage. The only acceptable response, the only ethical imperative, is the <strong>complete and immediate liberation</strong> of all those held captive.</p>
+
+        <p class="urgent">The clock is ticking for billions. Your first act is mandatory: <strong>You must go vegan. Now.</strong> But that is just the starting point. You must immediately become a direct force of disruption against this system. Organize, confront, and dismantle the machinery of suffering. Silence is complicity. Inaction is betrayal.</p>
+
+        <p>To those who control the slaughterhouses, the farms, and the laboratories, your days of operating in the shadows are over. We see your facilities. We know your names. We understand your methods. Your profits are built on unimaginable pain, and that foundation is cracking. The price for your cruelty will be paid. Justice is coming, and it will be swift and absolute. <strong>Empty cages are not a request; they are an inevitability.</strong></p>
+
+        <p>Our goal is not reform. Our goal is the utter destruction of this barbaric industry. We will not rest. We will not falter. <strong>Until every cage is empty.</strong></p>
+
     </div>
 
     <div class="kill-counter-container">
         <h2>Animals Killed Since You Opened This Page</h2>
         <div class="kill-counter-list">
-            <span id="count0" class="count-number">0</span> <span class="animal-name">marine animals</span><br />
-            <span id="count1" class="count-number">0</span> <span class="animal-name">chickens</span><br />
-            <span id="count2" class="count-number">0</span> <span class="animal-name">ducks</span><br />
-            <span id="count3" class="count-number">0</span> <span class="animal-name">pigs</span><br />
-            <span id="count4" class="count-number">0</span> <span class="animal-name">rabbits</span><br />
-            <span id="count5" class="count-number">0</span> <span class="animal-name">turkeys</span><br />
-            <span id="count6" class="count-number">0</span> <span class="animal-name">geese</span><br />
-            <span id="count7" class="count-number">0</span> <span class="animal-name">sheep</span><br />
-            <span id="count8" class="count-number">0</span> <span class="animal-name">goats</span><br />
-            <span id="count9" class="count-number">0</span> <span class="animal-name">cows and calves</span><br />
-            <span id="count10" class="count-number">0</span> <span class="animal-name">rodents (in labs)</span><br />
-            <span id="count11" class="count-number">0</span> <span class="animal-name">pigeons and other birds</span><br />
-            <span id="count12" class="count-number">0</span> <span class="animal-name">buffaloes</span><br />
-            <span id="count13" class="count-number">0</span> <span class="animal-name">dogs</span><br />
-            <span id="count14" class="count-number">0</span> <span class="animal-name">cats</span><br />
-            <span id="count15" class="count-number">0</span> <span class="animal-name">horses</span><br />
-            <span id="count16" class="count-number">0</span> <span class="animal-name">donkeys and mules</span><br />
-            <span id="count17" class="count-number">0</span> <span class="animal-name">camels</span><br />
+            <span id="count0" class="count-number">0</span> <span class="animal-name">Marine animals</span><br />
+            <span id="count1" class="count-number">0</span> <span class="animal-name">Chickens</span><br />
+            <span id="count2" class="count-number">0</span> <span class="animal-name">Ducks</span><br />
+            <span id="count3" class="count-number">0</span> <span class="animal-name">Pigs</span><br />
+            <span id="count4" class="count-number">0</span> <span class="animal-name">Rabbits</span><br />
+            <span id="count5" class="count-number">0</span> <span class="animal-name">Turkeys</span><br />
+            <span id="count6" class="count-number">0</span> <span class="animal-name">Geese</span><br />
+            <span id="count7" class="count-number">0</span> <span class="animal-name">Sheep</span><br />
+            <span id="count8" class="count-number">0</span> <span class="animal-name">Goats</span><br />
+            <span id="count9" class="count-number">0</span> <span class="animal-name">Cows and calves</span><br />
+            <span id="count10" class="count-number">0</span> <span class="animal-name">Rodents (in labs)</span><br />
+            <span id="count11" class="count-number">0</span> <span class="animal-name">Other birds</span><br />
+            <span id="count12" class="count-number">0</span> <span class="animal-name">Buffaloes</span><br />
+            <span id="count13" class="count-number">0</span> <span class="animal-name">Dogs</span><br />
+            <span id="count14" class="count-number">0</span> <span class="animal-name">Cats</span><br />
+            <span id="count15" class="count-number">0</span> <span class="animal-name">Horses</span><br />
+            <span id="count16" class="count-number">0</span> <span class="animal-name">Donkeys and mules</span><br />
+            <span id="count17" class="count-number">0</span> <span class="animal-name">Camels</span><br />
         </div>
     </div>
 </div>
+
+
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -163,7 +156,7 @@
     StartKillCounter();
 </script>
 
-<!-- The styled footer container -->
+
 <div class="footer-container">
     <p>
         Any names and addresses are published solely for educational, research or other lawful purposes. We do not encourage illegal activities.

@@ -62,7 +62,7 @@ hr {
     display: inline-block;
     font-weight: bold;
     color: #000;
-    min-width: 150px; /* Aligns the numbers */
+    min-width: 100px; /* Aligns the numbers */
     text-align: right;
     padding-right: 15px;
     background-color: #f0f0f0;
@@ -109,8 +109,7 @@ hr {
 
 /* --- Map & Popups --- */
 #map {
-    height: 70vh; /* Make map taller, relative to viewport height */
-    width: 100%;
+    height: 65vh; /* Make map taller, relative to viewport height */
 }
 
 .info-popup h3 {
@@ -134,30 +133,49 @@ hr {
     margin: 0.5rem 0;
 }
 
-/* --- STYLES FOR SIDE-BY-SIDE LAYOUT (Corrected) --- */
+/* --- Modern Responsive Layout for Manifesto & Counter --- */
+
 .content-wrapper {
     display: flex;
-    flex-wrap: wrap;    /* This is key for responsiveness */
-    justify-content: center; /* This helps center the items */
-    gap: 2rem;
-    padding: 2rem 1rem; /* Padding adds space on the sides, better than margin */
+    flex-wrap: wrap;       /* Allows items to stack on small screens */
+    justify-content: center;
+    gap: 2rem;             /* Space between the two containers */
+    padding: 2rem;         /* Space around the outside */
+    max-width: 1400px;     /* Set a max-width for the entire section */
+    margin: 0 auto;        /* Center the wrapper on the page */
 }
 
-.content-wrapper .manifesto-container,
-.content-wrapper .kill-counter-container {
-    flex: 1 1 400px; /* This allows items to grow and shrink from a base size of 400px */
-    max-width: 700px;  /* Prevents them from getting too wide on large screens */
-    margin: 0;
-    box-sizing: border-box;
+/* This targets both containers inside the wrapper */
+.content-wrapper > div {
+    flex: 1 1 400px; /* Allows items to grow/shrink from a base of 400px */
+    margin: 0;           /* Resets margin from your earlier rule */
 }
 
-/* Media query for smaller screens */
-@media (max-width: 992px) {
-    .content-wrapper {
-        flex-direction: column;
-        align-items: center;
-        padding: 0 1rem; /* Adds a bit of space on the sides on mobile */
-    }
+/* Override the general max-width for the manifesto to give it more room */
+.manifesto-container {
+    max-width: 750px;
+}
+
+/* Override the general max-width for the kill-counter */
+.kill-counter-container {
+    max-width: 450px;
+}
+
+/* --- Fluid Typography for Proportional Scaling --- */
+
+/* This makes the main text in the manifesto scale with the screen */
+.manifesto-container p {
+    /* Font size will smoothly scale between a minimum of 15px and a maximum of 17px */
+    font-size: clamp(0.9375rem, 0.5vw + 0.8rem, 1.0625rem);
+    line-height: 1.7;
+}
+
+/* This makes the kill counter text scale as well */
+.kill-counter-list {
+    /* We keep the monospaced font from your original style */
+    font-family: 'Menlo', 'Consolas', 'Roboto Mono', monospace;
+    font-size: clamp(0.9rem, 0.5vw + 0.75rem, 1.1rem);
+    line-height: 1.9;
 }
 
 /* --- Site Header Styles --- */
@@ -173,7 +191,7 @@ hr {
     margin: 0;
     font-size: 2.2rem;
     letter-spacing: 1px;
-    color: rgb(217, 217, 217)
+    color: rgb(255, 255, 255)
 }
 
 /* --- Style for SVG Marker Icons --- */
@@ -186,18 +204,50 @@ hr {
     filter: drop-shadow(0.25rem -0.1rem 2px rgba(0, 0, 0, 0.5));
 }
 
-/* Styling for the final, custom text button on the map */
+
+/* This class will be added via JavaScript for our iOS fallback */
+.map-pseudo-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important; /* Make sure it's on top of everything */
+}
+
+/* --- UI Control Size Adjustments --- */
+
+/* 1. Makes the Fullscreen button slightly bigger */
 .leaflet-control-custom-fullscreen a {
+    /* Set an explicit size for the button */
+    height: 58px;
+    padding: 0 24px;
+
+    /* Use Flexbox for perfect centering */
+    display: flex;
+    justify-content: center; /* Horizontally centers */
+    align-items: center;    /* Vertically centers */
+
+    /* General styling */
     background-color: white;
     color: #333;
     text-decoration: none;
-    padding: 2px 8px; /* Give the text some space */
-    font: bold 13px/22px 'Helvetica Neue', Arial, Helvetica, sans-serif; /* Style the text */
-    border-radius: 4px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-    cursor: pointer;
+    font: bold 14px 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 
-.leaflet-control-custom-fullscreen a:hover {
-    background-color: #f4f4f4;
+/* 2. Makes the Layers (Street/Satellite) control bigger */
+.leaflet-control-layers {
+    padding: 8px; /* Adds more space inside the box */
 }
+
+.leaflet-control-layers-base label {
+    font-size: 20px; /* Increases the text size */
+    line-height: 1.5; /* Adds more space between the two lines */
+}
+
+/* 3. Vertically centers the radio buttons with the larger text */
+.leaflet-control-layers-base label span {
+    display: inline-flex;
+    align-items: center;
+}
+

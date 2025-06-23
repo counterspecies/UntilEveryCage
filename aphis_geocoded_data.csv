@@ -1,5 +1,5 @@
 Account Name,Customer Number_x,Certificate Number,Registration Type,Certificate Status,Status Date,Address Line 1,Address Line 2,City-State-Zip,County,Customer Number_y,Year,Dogs,Cats,Guinea Pigs,Hamsters,Rabbits,Non-Human Primates,Sheep,Pigs,Other Farm Animals,All Other Animals,latitude,longitude
-Utah State University,2,87-R-0002,Class R - Research Facility,Active,,V.P. FOR RESEARCH/1450 OLD MAIN HILL,,"LOGAN, UT 84322",Cache,2,2024,,,83,1440,,,230,22,88,,,
+Utah State University,2,87-R-0002,Class R - Research Facility,Active,,V.P. FOR RESEARCH/1450 OLD MAIN HILL,,"LOGAN, UT 84322",Cache,2,2024,,,83,1440,,,230,22,88,,41.74078052007166, -111.81413441229542
 Brigham Young University,3,87-R-0003,Class R - Research Facility,Active,,Research Administration Office,"A-285, ASB","PROVO, UT 84602",Utah,3,2024,,,,,,,,,,,,
 Weber State University,5,87-R-0008,Class R - Research Facility,Active,,3850 Dixon Parkway Department 1027,,"OGDEN, UT 84408",Weber,5,2024,,,,,,,,,,,,
 University of Utah,12,87-R-0001,Class R - Research Facility,Active,,OFFICE OF COMPARATIVE MEDICINE,"75 SOUTH 2000 EAST, SUITE 311","SALT LAKE CITY, UT 84112",Salt Lake,12,2024,43,8,151,,290,27,151,101,,,40.7596198,-111.886797

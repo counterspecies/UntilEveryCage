@@ -4,14 +4,12 @@ const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
-
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
         position: 'topleft',
-        enterText: 'Enter', // Changed to this shorter text
+        enterText: 'Fullscreen',
         exitText: 'Exit'
     },
-
 
     onAdd: function (map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-fullscreen');
@@ -21,35 +19,72 @@ L.Control.CustomFullscreen = L.Control.extend({
 
         this._map = map;
 
-        // CORRECTED: Listen to the document's fullscreenchange event
+        // Listen for native fullscreen changes
         L.DomEvent.on(document, 'fullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.on(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.on(document, 'mozfullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.on(document, 'msfullscreenchange', this._onFullscreenChange, this);
 
+        // Listen for clicks on the button
         L.DomEvent.on(container, 'click', L.DomEvent.stop);
         L.DomEvent.on(container, 'click', this._toggleFullscreen, this);
 
         return container;
     },
 
-    // Add an on Remove method to clean up the event listener
     onRemove: function (map) {
         L.DomEvent.off(document, 'fullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.off(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.off(document, 'mozfullscreenchange', this._onFullscreenChange, this);
+        L.DomEvent.off(document, 'msfullscreenchange', this._onFullscreenChange, this);
     },
 
+    // This function now handles all cases (native and pseudo)
     _toggleFullscreen: function () {
-        if (!document.fullscreenElement) {
-            this._map.getContainer().requestFullscreen();
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
+        const container = this._map.getContainer();
+
+        // 1. Check if we are in pseudo-fullscreen mode (for iOS)
+        if (L.DomUtil.hasClass(container, 'map-pseudo-fullscreen')) {
+            L.DomUtil.removeClass(container, 'map-pseudo-fullscreen');
+            this.link.innerHTML = this.options.enterText;
+            this._map.invalidateSize(); // Tell Leaflet to redraw
+            return;
+        }
+
+        // 2. Check for native fullscreen element
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+        if (fullscreenElement) {
+            // Exit native fullscreen
+            const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exitMethod) {
+                exitMethod.call(document);
             }
+            return;
+        }
+        
+        // 3. If not in any fullscreen, try to enter
+        const requestMethod = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
+
+        if (requestMethod) {
+            // Try native fullscreen first
+            requestMethod.call(container);
+        } else {
+            // Fallback to pseudo-fullscreen for iOS and older browsers
+            L.DomUtil.addClass(container, 'map-pseudo-fullscreen');
+            this.link.innerHTML = this.options.exitText;
+            this._map.invalidateSize(); // Tell Leaflet to redraw
         }
     },
 
-    // This will now be called correctly
+    // This function only needs to handle native fullscreen changes (like pressing Esc)
     _onFullscreenChange: function () {
-        if (document.fullscreenElement === this._map.getContainer()) {
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        
+        if (fullscreenElement === this._map.getContainer()) {
             this.link.innerHTML = this.options.exitText;
         } else {
+            L.DomUtil.removeClass(this._map.getContainer(), 'map-pseudo-fullscreen'); // Ensure pseudo is also removed
             this.link.innerHTML = this.options.enterText;
         }
     }
@@ -62,7 +97,7 @@ const map = L.map('map', {
 
 map.addControl(new L.Control.CustomFullscreen());
 
-// 1. Define multiple map layers (tile providers)
+// Define multiple map layers (tile providers)
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
@@ -73,16 +108,16 @@ const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/se
     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 });
 
-// 2. Add one of the layers to the map by default (this will be the initial view)
+// Add one of the layers to the map by default (this will be the initial view)
 streetMap.addTo(map);
 
-// 3. Create a 'baseMaps' object to hold our different map backgrounds.
+//Create a 'baseMaps' object to hold our different map backgrounds.
 const baseMaps = {
     "Street View": streetMap,
     "Satellite View": satelliteMap
 };
 
-// 4. Add the layers control to the map, passing in our baseMaps object.
+//Add the layers control to the map, passing in our baseMaps object.
 L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 
@@ -201,11 +236,13 @@ function applyFilters() {
         if (location.dbas && location.dbas.length > 0) {
             otherNamesText = `<p><strong>Doing Business As:</strong> ${location.dbas}</p>`;
         }
+
+        let locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing Plant";
         
         const popupContent = `
             <div class="info-popup">
                 <h3>${location.establishment_name || 'Unknown Name'}</h3>
-                <p1>(${location.latitude},${location.longitude})</p1>
+                <p1>${location.latitude}, ${location.longitude}</p1>
                 <hr>
                 <p><strong>Address:</strong> ${address}</p>
                 <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
