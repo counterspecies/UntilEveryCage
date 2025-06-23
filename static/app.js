@@ -248,7 +248,8 @@ function applyFilters() {
                 ${otherNamesText}
                 <hr>
                 <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
-                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
+                <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
+                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p> 
                 ${slaughterText}
             </div>
         `;

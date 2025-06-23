@@ -1,9 +1,9 @@
 use serde::Serialize;
 use serde::Deserialize;
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Location {
+    // --- Existing fields from your file ---
     pub establishment_id: String,
     pub establishment_number: String,
     pub establishment_name: String,
@@ -82,8 +82,76 @@ pub struct Location {
     pub meat_slaughter_only_species: String,
     pub poultry_slaughter_only_species: String,
     pub slaughter_volume_category: String,
+    pub processing_volume_category: String,
+
+    // --- NEWLY ADDED PROCESSING FIELDS ---
+    // These will be read from your enriched CSV file.
+    pub beef_processing: String,
+    pub pork_processing: String,
+    pub antelope_processing: String,
+    pub bison_processing: String,
+    pub buffalo_processing: String,
+    pub deer_processing: String,
+    pub elk_processing: String,
+    pub goat_processing: String,
+    pub other_voluntary_livestock_processing: String,
+    pub rabbit_processing: String,
+    pub reindeer_processing: String,
+    pub sheep_processing: String,
+    pub yak_processing: String,
+    pub chicken_processing: String,
+    pub duck_processing: String,
+    pub goose_processing: String,
+    pub pigeon_processing: String,
+    pub ratite_processing: String,
+    pub turkey_processing: String,
+    pub exotic_poultry_processing: String,
+    pub other_voluntary_poultry_processing: String,
 }
 
+// --- NEW HELPER FUNCTION FOR PROCESSED ANIMALS ---
+pub fn get_processed_animals(location: &Location) -> String {
+    let mut processed_animals: Vec<&str> = Vec::new();
+
+    // Helper closure to check the Option<String> fields safely
+    let mut add_if_processed = |field: &str, name: &'static str| {
+        if field == "Yes"  {
+            processed_animals.push(name);
+        }
+    };
+
+    // --- Livestock Processing ---
+    add_if_processed(&location.beef_processing, "Beef");
+    add_if_processed(&location.pork_processing, "Pork");
+    add_if_processed(&location.antelope_processing, "Antelope");
+    add_if_processed(&location.bison_processing, "Bison");
+    add_if_processed(&location.buffalo_processing, "Buffalo");
+    add_if_processed(&location.deer_processing, "Deer");
+    add_if_processed(&location.elk_processing, "Elk");
+    add_if_processed(&location.goat_processing, "Goat");
+    add_if_processed(&location.other_voluntary_livestock_processing, "Other Voluntary Livestock");
+    add_if_processed(&location.rabbit_processing, "Rabbit");
+    add_if_processed(&location.reindeer_processing, "Reindeer");
+    add_if_processed(&location.sheep_processing, "Sheep");
+    add_if_processed(&location.yak_processing, "Yak");
+
+    // --- Poultry Processing ---
+    add_if_processed(&location.chicken_processing, "Chicken");
+    add_if_processed(&location.duck_processing, "Duck");
+    add_if_processed(&location.goose_processing, "Goose");
+    add_if_processed(&location.pigeon_processing, "Pigeon");
+    add_if_processed(&location.ratite_processing, "Ratite (Ostrich/Emu)");
+    add_if_processed(&location.turkey_processing, "Turkey");
+    add_if_processed(&location.exotic_poultry_processing, "Exotic Poultry");
+    add_if_processed(&location.other_voluntary_poultry_processing, "Other Voluntary Poultry");
+
+    if processed_animals.is_empty() {
+        "N/A".to_string()
+    } else {
+        processed_animals.join(", ")
+    }
+}
+ 
 pub fn get_slaughtered_animals(location: &Location) -> String {
     let mut killed_animals: Vec<&str> = Vec::new();
 

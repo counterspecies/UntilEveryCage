@@ -4,11 +4,12 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use serde::Serialize;
 use std::error::Error;
 use tower_http::cors::CorsLayer;
 
 mod location;
-use crate::location::{get_tested_animals, AphisReport, Location};
+use crate::location::*;
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
@@ -43,9 +44,7 @@ async fn get_aphis_reports_handler() -> impl IntoResponse {
 }
 
 // MODIFIED: This function no longer takes a path argument
-async fn read_locations_from_csv() -> Result<Vec<Location>, Box<dyn Error>> {
-    // The include_str! macro reads the file at COMPILE TIME and embeds it in the program.
-    // The path is relative to this source file (main.rs is in src/, so we go up one level with ..)
+async fn read_locations_from_csv() -> Result<Vec<LocationResponse>, Box<dyn Error>> {
     let csv_data = include_str!("../static_data/usda_locations.csv");
     
     // The csv crate reads directly from the string data
@@ -54,12 +53,31 @@ async fn read_locations_from_csv() -> Result<Vec<Location>, Box<dyn Error>> {
     let mut locations = Vec::new();
     for result in reader.deserialize() {
         let record: Location = result?;
-        locations.push(record);
+        let animals_slaughtered = get_slaughtered_animals(&record);
+        let animals_processed = dbg!(get_processed_animals(&record));
+        locations.push(LocationResponse {
+            establishment_id: record.establishment_id,
+            establishment_name: record.establishment_name,
+            latitude: record.latitude,
+            longitude: record.longitude,
+            activities: record.activities,
+            state: record.state,
+            city: record.city,
+            street: record.street,
+            zip: record.zip,
+            slaughter: record.slaughter,
+            animals_slaughtered,
+            dbas: record.dbas,
+            phone: record.phone,
+            slaughter_volume_category: record.slaughter_volume_category,
+            processing_volume_category: record.processing_volume_category,
+            animals_processed,
+        });
     }
     Ok(locations)
 }
 
-// MODIFIED: This function no longer takes a path argument
+
 pub async fn read_aphis_reports_from_csv() -> Result<Vec<AphisReport>, Box<dyn Error>> {
     // Embed the APHIS data at compile time
     let csv_data = include_str!("../static_data/aphis_data_final.csv");
@@ -73,4 +91,25 @@ pub async fn read_aphis_reports_from_csv() -> Result<Vec<AphisReport>, Box<dyn E
         reports.push(record);
     }
     Ok(reports)
+}
+
+
+#[derive(Serialize, Debug)]
+struct LocationResponse {
+    establishment_id: String,
+    establishment_name: String,
+    latitude: f64,
+    longitude: f64,
+    activities: String,
+    state: String,
+    city: String,
+    street: String,
+    zip: String,
+    slaughter: String,
+    animals_slaughtered: String,
+    animals_processed: String,
+    slaughter_volume_category: String,
+    processing_volume_category: String,
+    dbas: String,
+    phone: String,
 }
