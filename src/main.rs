@@ -88,7 +88,7 @@ async fn get_locations_handler() -> Result<Json<Vec<LocationResponse>>, (StatusC
 
 
 async fn get_aphis_reports_handler() -> Result<Json<Vec<AphisReport>>, (StatusCode, String)> {
-    match read_aphis_reports_from_csv("aphis_geocoded_data(2).csv").await {
+    match read_aphis_reports_from_csv("aphis_geocoded_data.csv").await {
         Ok(data) => Ok(Json(data)),
         Err(e) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -124,7 +124,7 @@ pub async fn read_aphis_reports_from_csv(path: &str) -> Result<Vec<AphisReport>,
                 reports.push(record);
             }
             Err(_e) => {
-                //eprintln!("Warning: Skipping a row in '{}' due to a parsing error: {}", path, e);
+                eprintln!("Warning: Skipping a row in '{}' due to a parsing error: {}", path, _e);
             }
         }
     }

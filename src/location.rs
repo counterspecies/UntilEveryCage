@@ -207,9 +207,9 @@ pub fn get_tested_animals(report: &AphisReport) -> String {
     let mut add_if_tested = |count_str: &str, name: &str| {
         // Attempt to parse the string into an integer.
         // If it succeeds and the number is > 0, format it and push to the vector.
-        if let Ok(num) = count_str.parse::<i32>() {
-            if num > 0 {
-                tested_animals.push(format!("{} {}", num, name));
+        if let Ok(num) = count_str.parse::<f32>() {
+            if num > 0.0 {
+                tested_animals.push(format!("{} {}", num as i32, name));
             }
         }
     };
