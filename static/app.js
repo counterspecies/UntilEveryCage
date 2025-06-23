@@ -323,8 +323,6 @@ function getStateFromCityStateZip(cityStateZip) {
     return match ? match[1] : null;
 }
 
-// In app.js
-
 async function initializeApp() {
     try {
         console.log("Fetching both USDA and APHIS datasets...");
