@@ -68,12 +68,9 @@ pub async fn read_aphis_reports_from_csv() -> Result<Vec<AphisReport>, Box<dyn E
     let mut reader = csv::Reader::from_reader(csv_data.as_bytes());
 
     let mut reports = Vec::new();
-    for result in reader.deserialize() {
-        if let Ok(record_with_options) = result {
-            let mut record: AphisReport = record_with_options;
-            record.animals_tested = Some(get_tested_animals(&record));
-            reports.push(record);
-        }
+    for mut record in reader.deserialize::<AphisReport>().flatten() {
+        record.animals_tested = Some(get_tested_animals(&record));
+        reports.push(record);
     }
     Ok(reports)
 }

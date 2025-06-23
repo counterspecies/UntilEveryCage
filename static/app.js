@@ -326,24 +326,33 @@ function getStateFromCityStateZip(cityStateZip) {
 async function initializeApp() {
     try {
         // Fetch BOTH datasets when the app starts
-        const usdaPromise = fetch('/api/locations');
-        const aphisPromise = fetch('/api/aphis-reports');
+        console.log("Attempting to fetch data from Shuttle...");
 
-        // Wait for both fetch requests to complete
-        const [usdaResponse, aphisResponse] = await Promise.all([usdaPromise, aphisPromise]);
-
-        allLocations = await usdaResponse.json();
-        allLabLocations = await aphisResponse.json();
+        // We only need to debug one of the fetch calls for now.
+        const response = await fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports');
         
-        // Populate dropdown from BOTH datasets to get all states
+        console.log("Received a response from the server.");
+        console.log("Status Code:", response.status);
+
+        // Clone the response so we can read its text content without consuming the body
+        const responseText = await response.clone().text();
+        
+        console.log("--- START OF RAW RESPONSE FROM SERVER ---");
+        console.log(responseText);
+        console.log("---  END OF RAW RESPONSE FROM SERVER  ---");
+
+        // Now, proceed with the original logic
+        allLabLocations = await response.json(); // This is the line that is likely failing
+        
+        // For now, we'll use an empty array for the other dataset
+        allLocations = []; 
+
+        // ... now call the rest of your original logic
         const usdaStates = allLocations.map(loc => loc.state);
         const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])); 
         const allStateValues = [...usdaStates, ...aphisStates];
-
         const uniqueStates = [...new Set(allStateValues.filter(state => state != null))];
         uniqueStates.sort();
-        
-        // Clear existing options before adding new ones
         stateSelector.innerHTML = '<option value="all">All States</option>';
         uniqueStates.forEach(state => {
             const option = document.createElement('option');
@@ -351,8 +360,6 @@ async function initializeApp() {
             option.textContent = state;
             stateSelector.appendChild(option);
         });
-    
-        // Run the filters once to set the initial view
         applyFilters();
 
     } catch (error) {
