@@ -109,7 +109,7 @@ hr {
 
 /* --- Map & Popups --- */
 #map {
-    height: 68vh; /* Make map taller, relative to viewport height */
+    height: 65vh; /* Make map taller, relative to viewport height */
 }
 
 .info-popup h3 {
