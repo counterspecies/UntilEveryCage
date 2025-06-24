@@ -269,3 +269,25 @@ hr {
 .resources-section p, .resources-section li {
     font-size: 0.95em;
 }
+
+/* --- Share Button Styling --- */
+
+#share-view-btn {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #007bff; /* A distinct 'action' color */
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#share-view-btn:hover {
+    background-color: #0056b3;
+}
+
+/* A style for when the text is copied */
+#share-view-btn.copied {
+    background-color: #28a745; /* Green for success */
+}

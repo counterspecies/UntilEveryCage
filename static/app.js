@@ -329,6 +329,34 @@ function getStateFromCityStateZip(cityStateZip) {
     return match ? match[1] : null;
 }
 
+// --- Share Button "Copy to Clipboard" Logic ---
+
+const shareViewBtn = document.getElementById('share-view-btn');
+
+shareViewBtn.addEventListener('click', () => {
+    // navigator.clipboard.writeText() is the modern way to copy text.
+    // It returns a Promise, which we can use to provide feedback.
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        // SUCCESS!
+        // Give the user visual feedback that the link was copied.
+        const originalText = shareViewBtn.textContent;
+        shareViewBtn.textContent = 'Link Copied!';
+        shareViewBtn.classList.add('copied'); // Add the green style
+
+        // Revert the button text back after 2 seconds
+        setTimeout(() => {
+            shareViewBtn.textContent = originalText;
+            shareViewBtn.classList.remove('copied');
+        }, 2000);
+
+    }).catch(err => {
+        // FAILURE!
+        // This can happen if the user's browser is very old or denies permissions.
+        console.error('Failed to copy URL: ', err);
+        alert('Could not copy link to clipboard. Please copy the URL from your address bar manually.');
+    });
+});
+
 async function initializeApp() {
 
     const loader = document.getElementById('loader-overlay'); 
