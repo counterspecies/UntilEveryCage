@@ -252,3 +252,20 @@ hr {
     align-items: center;
 }
 
+/* Optional styling for the new resources section */
+.resources-section {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-left: 3px solid #c81a2a; /* Red accent consistent with theme */
+    padding: 0.5rem 1.5rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+}
+
+.resources-section h4 {
+    margin-bottom: 0.5rem;
+}
+
+.resources-section p, .resources-section li {
+    font-size: 0.95em;
+}
