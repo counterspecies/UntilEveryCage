@@ -4,6 +4,7 @@ const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
+
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
         position: 'topleft',
@@ -120,6 +121,7 @@ const labIcon = L.icon({
 // --- Setup ---
 let allLocations = [];
 let allLabLocations = [];
+let isInitialDataLoading = true;
 
 // Both clustered and non-clustered layers
 const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
@@ -138,6 +140,9 @@ const stateSelector = document.getElementById('state-selector');
 
 // This function reads the current map state and updates the browser's URL bar
 function updateUrlWithCurrentState() {
+    if (isInitialDataLoading) {
+        return; 
+    }
     const center = map.getCenter();
     const zoom = map.getZoom();
     const lat = center.lat.toFixed(5);
@@ -387,6 +392,8 @@ async function initializeApp() {
         alert(`There was a critical error fetching data from the server: ${error.message}`);
     } finally {
         if(loader) loader.style.display = 'none';
+        isInitialDataLoading = false;
+        updateUrlWithCurrentState();
     }
 }
 
