@@ -3,7 +3,6 @@ use serde::Deserialize;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Location {
-    // --- Existing fields from your file ---
     pub establishment_id: String,
     pub establishment_number: String,
     pub establishment_name: String,
@@ -84,8 +83,7 @@ pub struct Location {
     pub slaughter_volume_category: String,
     pub processing_volume_category: String,
 
-    // --- NEWLY ADDED PROCESSING FIELDS ---
-    // These will be read from your enriched CSV file.
+    // --- PROCESSING FIELDS ---
     pub beef_processing: String,
     pub pork_processing: String,
     pub antelope_processing: String,

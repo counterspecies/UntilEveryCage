@@ -1,3 +1,20 @@
+// Until Every Cage is Empty
+// Copyright (C) 2025 Eli Perez 
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Contact the developer directly at untileverycageproject@protonmail.com
 use axum::{
     http::StatusCode,
     response::IntoResponse,
@@ -43,7 +60,7 @@ async fn get_aphis_reports_handler() -> impl IntoResponse {
     }
 }
 
-// MODIFIED: This function no longer takes a path argument
+
 async fn read_locations_from_csv() -> Result<Vec<LocationResponse>, Box<dyn Error>> {
     let csv_data = include_str!("../static_data/usda_locations.csv");
     
@@ -54,7 +71,7 @@ async fn read_locations_from_csv() -> Result<Vec<LocationResponse>, Box<dyn Erro
     for result in reader.deserialize() {
         let record: Location = result?;
         let animals_slaughtered = get_slaughtered_animals(&record);
-        let animals_processed = dbg!(get_processed_animals(&record));
+        let animals_processed = get_processed_animals(&record);
         locations.push(LocationResponse {
             establishment_id: record.establishment_id,
             establishment_name: record.establishment_name,

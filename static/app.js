@@ -4,11 +4,10 @@ const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
-// Your Custom Fullscreen control is preserved
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
         position: 'topleft',
-        enterText: 'Full',
+        enterText: 'Fullscreen',
         exitText: 'Exit'
     },
     onAdd: function (map) {
@@ -91,7 +90,6 @@ const baseMaps = {
 };
 L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
-// Using your PNG icon definitions
 const slaughterhouseIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -137,7 +135,6 @@ const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const stateSelector = document.getElementById('state-selector');
 
 
-// --- MODIFIED: The function now accepts a parameter to control view changes ---
 function applyFilters(shouldUpdateView = false) {
     const selectedState = stateSelector.value;
     const isAllStatesView = selectedState === 'all';
@@ -273,7 +270,7 @@ function applyFilters(shouldUpdateView = false) {
         if (testingLabsCheckbox.checked) map.addLayer(labFeatureLayer);
     }
     
-    // --- MODIFIED: This block now only runs if shouldUpdateView is true ---
+
     if (shouldUpdateView) {
         if (!isAllStatesView && markerBounds.length > 0) {
             const bounds = L.latLngBounds(markerBounds);
@@ -284,7 +281,7 @@ function applyFilters(shouldUpdateView = false) {
     }
 }
 
-// --- MODIFIED: Event listeners now pass a parameter ---
+
 slaughterhouseCheckbox.addEventListener('change', () => applyFilters(false));
 meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
 testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
@@ -297,7 +294,7 @@ function getStateFromCityStateZip(cityStateZip) {
 }
 
 async function initializeApp() {
-    // Assuming you have a loader element in your HTML with id="loader-overlay"
+
     const loader = document.getElementById('loader-overlay'); 
     try {
         if(loader) loader.style.display = 'flex';
@@ -326,7 +323,6 @@ async function initializeApp() {
             stateSelector.appendChild(option);
         });
 
-        // The first call to applyFilters should update the view
         applyFilters(true);
 
     } catch (error) {
