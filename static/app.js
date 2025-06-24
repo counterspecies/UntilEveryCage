@@ -66,6 +66,8 @@ L.Control.CustomFullscreen = L.Control.extend({
     }
 });
 
+
+
 const map = L.map('map', {
     maxBounds: worldBounds,
     maxBoundsViscosity: 0.1
@@ -133,6 +135,33 @@ const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox'
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
 const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const stateSelector = document.getElementById('state-selector');
+
+// This function reads the current map state and updates the browser's URL bar
+function updateUrlWithCurrentState() {
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const lat = center.lat.toFixed(5);
+    const lng = center.lng.toFixed(5);
+    const selectedState = stateSelector.value;
+
+    let activeLayers = [];
+    if (slaughterhouseCheckbox.checked) activeLayers.push('slaughter');
+    if (meatProcessingCheckbox.checked) activeLayers.push('processing');
+    if (testingLabsCheckbox.checked) activeLayers.push('labs');
+
+    const params = new URLSearchParams();
+    params.set('lat', lat);
+    params.set('lng', lng);
+    params.set('zoom', zoom);
+    params.set('state', selectedState);
+    if (activeLayers.length > 0) {
+        params.set('layers', activeLayers.join(','));
+    }
+
+    // Use history.pushState to update the URL without reloading the page
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    history.pushState({}, '', newUrl);
+}
 
 
 function applyFilters(shouldUpdateView = false) {
@@ -279,6 +308,7 @@ function applyFilters(shouldUpdateView = false) {
             map.setView([38.438847, -99.579560], 4);
         }
     }
+    updateUrlWithCurrentState();
 }
 
 
@@ -286,6 +316,7 @@ slaughterhouseCheckbox.addEventListener('change', () => applyFilters(false));
 meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
 testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
 stateSelector.addEventListener('change', () => applyFilters(true)); // Only this one updates the view
+map.on('moveend', updateUrlWithCurrentState);
 
 function getStateFromCityStateZip(cityStateZip) {
     if (!cityStateZip || typeof cityStateZip !== 'string') return null;
@@ -323,7 +354,33 @@ async function initializeApp() {
             stateSelector.appendChild(option);
         });
 
-        applyFilters(true);
+        // --- NEW: Check URL for parameters before applying initial filters ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const stateParam = urlParams.get('state');
+        const layersParam = urlParams.get('layers');
+        const latParam = urlParams.get('lat');
+        const lngParam = urlParams.get('lng');
+        const zoomParam = urlParams.get('zoom');
+        let shouldUpdateViewOnLoad = true;
+
+        if (layersParam) {
+            const visibleLayers = layersParam.split(',');
+            slaughterhouseCheckbox.checked = visibleLayers.includes('slaughter');
+            meatProcessingCheckbox.checked = visibleLayers.includes('processing');
+            testingLabsCheckbox.checked = visibleLayers.includes('labs');
+        }
+
+        if (stateParam) {
+            stateSelector.value = stateParam;
+        }
+
+        if (latParam && lngParam && zoomParam) {
+            map.setView([parseFloat(latParam), parseFloat(lngParam)], parseInt(zoomParam));
+            shouldUpdateViewOnLoad = false; // Don't reset the view if we have coordinates
+        }
+
+        // Call applyFilters with the correct view settings
+        applyFilters(shouldUpdateViewOnLoad);
 
     } catch (error) {
         console.error('Failed to fetch initial data:', error);
