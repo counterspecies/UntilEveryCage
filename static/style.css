@@ -158,7 +158,7 @@ hr {
 
 /* Override the general max-width for the kill-counter */
 .kill-counter-container {
-    max-width: 450px;
+    max-width: 550px;
 }
 
 /* --- Fluid Typography for Proportional Scaling --- */
