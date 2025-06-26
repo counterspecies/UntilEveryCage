@@ -252,6 +252,11 @@ function applyFilters(shouldUpdateView = false) {
         if (location.dbas && location.dbas.length > 0) {
             otherNamesText = `<p><strong>Doing Business As:</strong> ${location.dbas}</p>`;
         }
+
+        let locationTypeText = "Processing-Only Facility";
+        if (isSlaughterhouse) {
+            locationTypeText = "Slaughterhouse";
+        }
         
         const popupContent = `
                 <div class="info-popup">
@@ -287,13 +292,13 @@ function applyFilters(shouldUpdateView = false) {
             let labPopupContent = `
             <div class="info-popup">
                 <h3>${lab['Account Name'] || 'Unknown Name'}</h3>
+                <p><strong>Registration Type:</strong> ${lab['Registration Type'] || 'N/A'}</p>
                 <p1>(${lab.latitude},${lab.longitude})</p1>
                 <hr>
                 <p><strong>Address:</strong> ${lab['Address Line 1']} ${lab['Address Line 2']} ${lab['City-State-Zip'] || 'N/A'}</p>
                 <p><strong>Customer Number:</strong> ${lab['Customer Number_x'] || 'N/A'}</p>
                 <p><strong>Certificate Number:</strong> ${lab['Certificate Number'] || 'N/A'}</p>
                 <p><strong>Certificate Status:</strong> ${lab['Certificate Status'] || 'N/A'} as of 2024 </p>
-                <p><strong>Registration Type:</strong> ${lab['Registration Type'] || 'N/A'}</p>
                 <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
                 <hr>
             </div>
@@ -306,7 +311,6 @@ function applyFilters(shouldUpdateView = false) {
     });
 
     // --- Filter and plot Inspection Reports ---
-    // FIXED: Use correct property `report.State` for filtering
     const reportsToShow = allInspectionReports.filter(report => isAllStatesView || report['State'] === selectedState);
     reportsToShow.forEach(report => {
         // FIXED: Use bracket notation for keys with spaces
@@ -320,10 +324,10 @@ function applyFilters(shouldUpdateView = false) {
             const popupContent = `
                 <div class="info-popup inspection-popup">
                     <h3>${report['Account Name'] || 'Unknown Name'}</h3>
+                    <p1><<strong>License Type:</strong> ${report['License Type'] || 'N/A'}/p1>
                     <p1>(${lat}, ${lng})</p1>
                     <hr>
                     <p><strong>Address:</strong> ${report['Address Line 1'] || ''} ${report['Address Line 2'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
-                    <p><strong>License Type:</strong> ${report['License Type'] || 'N/A'}</p>
                     <p><strong>Certificate Number:</strong> ${report['Certificate Number'] || 'N/A'}</p>
                     <p><strong>Status:</strong> ${report['Certificate Status'] || 'N/A'} (${report['Status Date'] || 'Unknown'})</p>
                 </div>

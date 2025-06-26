@@ -24,6 +24,8 @@ use axum::{
 use serde::Serialize;
 use std::error::Error;
 use tower_http::cors::CorsLayer;
+use tower_http::compression::CompressionLayer;
+
 
 mod location;
 use crate::location::*;
@@ -34,8 +36,8 @@ async fn main() -> shuttle_axum::ShuttleAxum {
     let app = Router::new()
         .route("/api/locations", get(get_locations_handler))
         .route("/api/aphis-reports", get(get_aphis_reports_handler))
-        // --- NEW ROUTE for Inspection Reports ---
         .route("/api/inspection-reports", get(get_inspection_reports_handler))
+        .layer(CompressionLayer::new().gzip(true))
         .layer(cors);
 
     Ok(app.into())
@@ -61,7 +63,7 @@ async fn get_aphis_reports_handler() -> impl IntoResponse {
     }
 }
 
-// --- NEW HANDLER for Inspection Reports ---
+
 async fn get_inspection_reports_handler() -> impl IntoResponse {
     match read_inspection_reports_from_csv().await {
         Ok(reports) => Json(reports).into_response(),
@@ -122,7 +124,6 @@ pub async fn read_aphis_reports_from_csv() -> Result<Vec<AphisReport>, Box<dyn E
     Ok(reports)
 }
 
-// --- NEW FUNCTION to read the inspection reports CSV ---
 pub async fn read_inspection_reports_from_csv() -> Result<Vec<InspectionReport>, Box<dyn Error>> {
     let csv_data = include_str!("../static_data/inspection_reports.csv");
     

@@ -167,60 +167,78 @@ pub fn get_processed_animals(location: &Location) -> String {
     }
 }
  
+// --- UPDATED to use more common names ---
 pub fn get_slaughtered_animals(location: &Location) -> String {
     let mut killed_animals: Vec<&str> = Vec::new();
 
-    // --- Livestock ---
-    if location.beef_cow_slaughter == "Yes" { killed_animals.push("Beef Cow"); }
-    if location.steer_slaughter == "Yes" { killed_animals.push("Steer"); }
-    if location.heifer_slaughter == "Yes" { killed_animals.push("Heifer"); }
-    if location.bull_stag_slaughter == "Yes" { killed_animals.push("Bull/Stag"); }
-    if location.dairy_cow_slaughter == "Yes" { killed_animals.push("Dairy Cow"); }
-    if location.heavy_calf_slaughter == "Yes" { killed_animals.push("Heavy Calf"); }
-    if location.bob_veal_slaughter == "Yes" { killed_animals.push("Bob Veal"); }
-    if location.formula_fed_veal_slaughter == "Yes" { killed_animals.push("Formula-Fed Veal"); }
-    if location.non_formula_fed_veal_slaughter == "Yes" { killed_animals.push("Non-Formula-Fed Veal"); }
-    if location.market_swine_slaughter == "Yes" { killed_animals.push("Market Swine"); }
-    if location.sow_slaughter == "Yes" { killed_animals.push("Sow"); }
-    if location.roaster_swine_slaughter == "Yes" { killed_animals.push("Roaster Swine"); }
-    if location.boar_stag_swine_slaughter == "Yes" { killed_animals.push("Boar/Stag Swine"); }
-    if location.stag_swine_slaughter == "Yes" { killed_animals.push("Stag Swine"); }
-    if location.feral_swine_slaughter == "Yes" { killed_animals.push("Feral Swine"); }
-    if location.goat_slaughter == "Yes" { killed_animals.push("Goat"); }
-    if location.young_goat_slaughter == "Yes" { killed_animals.push("Young Goat"); }
-    if location.adult_goat_slaughter == "Yes" { killed_animals.push("Adult Goat"); }
-    if location.sheep_slaughter == "Yes" { killed_animals.push("Sheep"); }
-    if location.lamb_slaughter == "Yes" { killed_animals.push("Lamb"); }
-    if location.deer_reindeer_slaughter == "Yes" { killed_animals.push("Deer/Reindeer"); }
+    if location.beef_cow_slaughter == "Yes" 
+    || location.steer_slaughter == "Yes" 
+    || location.heifer_slaughter == "Yes" 
+    || location.bull_stag_slaughter == "Yes" 
+    || location.dairy_cow_slaughter == "Yes" { 
+        killed_animals.push("Cattle (Cows, Bulls)"); 
+    }
+    if location.heavy_calf_slaughter == "Yes" 
+    || location.bob_veal_slaughter == "Yes" 
+    || location.formula_fed_veal_slaughter == "Yes" 
+    || location.non_formula_fed_veal_slaughter == "Yes" {
+        killed_animals.push("Calves (Veal)");
+    }
+    if location.market_swine_slaughter == "Yes" 
+    || location.sow_slaughter == "Yes" 
+    || location.roaster_swine_slaughter == "Yes" 
+    || location.boar_stag_swine_slaughter == "Yes" 
+    || location.stag_swine_slaughter == "Yes" 
+    || location.feral_swine_slaughter == "Yes" {
+        killed_animals.push("Pigs");
+    }
+    if location.goat_slaughter == "Yes" 
+    || location.young_goat_slaughter == "Yes" 
+    || location.adult_goat_slaughter == "Yes" {
+        killed_animals.push("Goats");
+    }
+    if location.sheep_slaughter == "Yes" 
+    || location.lamb_slaughter == "Yes" {
+        killed_animals.push("Sheep & Lambs");
+    }
+    if location.deer_reindeer_slaughter == "Yes" { killed_animals.push("Deer & Reindeer"); }
     if location.antelope_slaughter == "Yes" { killed_animals.push("Antelope"); }
     if location.elk_slaughter == "Yes" { killed_animals.push("Elk"); }
-    if location.bison_slaughter == "Yes" { killed_animals.push("Bison"); }
-    if location.buffalo_slaughter == "Yes" { killed_animals.push("Buffalo"); }
-    if location.water_buffalo_slaughter == "Yes" { killed_animals.push("Water Buffalo"); }
-    if location.cattalo_slaughter == "Yes" { killed_animals.push("Cattalo"); }
+    if location.bison_slaughter == "Yes" 
+    || location.buffalo_slaughter == "Yes" 
+    || location.water_buffalo_slaughter == "Yes" 
+    || location.cattalo_slaughter == "Yes" {
+        killed_animals.push("Bison & Buffalo");
+    }
     if location.yak_slaughter == "Yes" { killed_animals.push("Yak"); }
-    if location.other_voluntary_livestock_slaughter == "Yes" { killed_animals.push("Other Voluntary Livestock"); }
-    if location.rabbit_slaughter == "Yes" { killed_animals.push("Rabbit"); }
+    if location.other_voluntary_livestock_slaughter == "Yes" { killed_animals.push("Other Livestock"); }
+    if location.rabbit_slaughter == "Yes" { killed_animals.push("Rabbits"); }
     
     // --- Poultry ---
-    if location.young_chicken_slaughter == "Yes" { killed_animals.push("Young Chicken"); }
-    if location.light_fowl_slaughter == "Yes" { killed_animals.push("Light Fowl"); }
-    if location.heavy_fowl_slaughter == "Yes" { killed_animals.push("Heavy Fowl"); }
-    if location.capon_slaughter == "Yes" { killed_animals.push("Capon"); }
-    if location.young_turkey_slaughter == "Yes" { killed_animals.push("Young Turkey"); }
-    if location.young_breeder_turkey_slaughter == "Yes" { killed_animals.push("Young Breeder Turkey"); }
-    if location.old_breeder_turkey_slaughter == "Yes" { killed_animals.push("Old Breeder Turkey"); }
-    if location.fryer_roaster_turkey_slaughter == "Yes" { killed_animals.push("Fryer/Roaster Turkey"); }
-    if location.duck_slaughter == "Yes" { killed_animals.push("Duck"); }
-    if location.goose_slaughter == "Yes" { killed_animals.push("Goose"); }
-    if location.pheasant_slaughter == "Yes" { killed_animals.push("Pheasant"); }
+    if location.young_chicken_slaughter == "Yes" 
+    || location.light_fowl_slaughter == "Yes" 
+    || location.heavy_fowl_slaughter == "Yes" 
+    || location.capon_slaughter == "Yes" {
+        killed_animals.push("Chickens");
+    }
+    if location.young_turkey_slaughter == "Yes" 
+    || location.young_breeder_turkey_slaughter == "Yes" 
+    || location.old_breeder_turkey_slaughter == "Yes" 
+    || location.fryer_roaster_turkey_slaughter == "Yes" {
+        killed_animals.push("Turkeys");
+    }
+    if location.duck_slaughter == "Yes" { killed_animals.push("Ducks"); }
+    if location.goose_slaughter == "Yes" { killed_animals.push("Geese"); }
+    if location.pheasant_slaughter == "Yes" { killed_animals.push("Pheasants"); }
     if location.quail_slaughter == "Yes" { killed_animals.push("Quail"); }
-    if location.guinea_slaughter == "Yes" { killed_animals.push("Guinea"); }
-    if location.ostrich_slaughter == "Yes" { killed_animals.push("Ostrich"); }
-    if location.emu_slaughter == "Yes" { killed_animals.push("Emu"); }
-    if location.rhea_slaughter == "Yes" { killed_animals.push("Rhea"); }
-    if location.squab_slaughter == "Yes" { killed_animals.push("Squab"); }
-    if location.other_voluntary_poultry_slaughter == "Yes" { killed_animals.push("Other Voluntary Poultry"); }
+    if location.guinea_slaughter == "Yes" { killed_animals.push("Guinea Fowl"); }
+    if location.ostrich_slaughter == "Yes" 
+    || location.emu_slaughter == "Yes" 
+    || location.rhea_slaughter == "Yes" {
+        killed_animals.push("Ratites (Ostrich, Emu, etc.)");
+    }
+    if location.squab_slaughter == "Yes" { killed_animals.push("Pigeons (Squab)"); }
+    if location.other_voluntary_poultry_slaughter == "Yes" { killed_animals.push("Other Poultry"); }
 
     // Join the collected names with a comma and space
     killed_animals.join(", ")
