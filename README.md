@@ -46,7 +46,7 @@ To run this project locally for development or research, follow these steps.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/eliPerez12/UntilEveryCage.git](https://github.com/eliPerez12/UntilEveryCage.git)
+    git clone https://github.com/eliPerez12/UntilEveryCage.git
     cd UntilEveryCage
     ```
 
