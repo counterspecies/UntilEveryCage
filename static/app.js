@@ -325,7 +325,7 @@ function applyFilters(shouldUpdateView = false) {
                     <p><strong>Address:</strong> ${report['Address Line 1'] || ''} ${report['Address Line 2'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
                     <p><strong>License Type:</strong> ${report['License Type'] || 'N/A'}</p>
                     <p><strong>Certificate Number:</strong> ${report['Certificate Number'] || 'N/A'}</p>
-                    <p><strong>Status:</strong> ${report['Certificate Status'] || 'N/A'} (as of ${report['Status Date'] || 'Unknown'})</p>
+                    <p><strong>Status:</strong> ${report['Certificate Status'] || 'N/A'} (${report['Status Date'] || 'Unknown'})</p>
                 </div>
             `;
             marker.bindPopup(popupContent);
