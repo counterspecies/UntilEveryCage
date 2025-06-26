@@ -318,7 +318,6 @@ function applyFilters(shouldUpdateView = false) {
     // --- Filter and plot Inspection Reports ---
     const reportsToShow = allInspectionReports.filter(report => isAllStatesView || report['State'] === selectedState);
     reportsToShow.forEach(report => {
-        // FIXED: Use bracket notation for keys with spaces
         const lat = report['Geocodio Latitude'];
         const lng = report['Geocodio Longitude'];
 
