@@ -261,7 +261,8 @@ function applyFilters(shouldUpdateView = false) {
         const popupContent = `
                 <div class="info-popup">
                     <h3>${location.establishment_name || 'Unknown Name'}</h3>
-                    <p1>${location.latitude}, ${location.longitude}</p1>
+                    <p1>${locationTypeText}</p1>
+                    <p1>(${location.latitude}, ${location.longitude})</p1>
                     <hr>
                     <p><strong>Address:</strong> ${address}</p>
                     <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
@@ -324,7 +325,7 @@ function applyFilters(shouldUpdateView = false) {
             const popupContent = `
                 <div class="info-popup inspection-popup">
                     <h3>${report['Account Name'] || 'Unknown Name'}</h3>
-                    <p1><<strong>License Type:</strong> ${report['License Type'] || 'N/A'}/p1>
+                    <p1><strong>License Type:</strong> ${report['License Type'] || 'N/A'}/p1>
                     <p1>(${lat}, ${lng})</p1>
                     <hr>
                     <p><strong>Address:</strong> ${report['Address Line 1'] || ''} ${report['Address Line 2'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
