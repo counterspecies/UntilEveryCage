@@ -61,7 +61,7 @@ To run this project locally for development or research, follow these steps.
     ```
     The server will start, typically on port `8000`.
 
-4.  **View the Application:** Open your web browser and navigate to the address shown in your terminal (e.g., `http://127.0.0.1:8000`). The map should load with all the data.
+4.  **View the Application:** Open your web browser and navigate to the address shown in your terminal (e.g., `http://127.0.0.1:8000`). There you will have access to the backend API running locally.
 
 ## How to Contribute
 
