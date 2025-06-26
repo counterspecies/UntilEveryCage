@@ -314,6 +314,7 @@ function applyFilters(shouldUpdateView = false) {
         }
     });
 
+
     // --- Filter and plot Inspection Reports ---
     const reportsToShow = allInspectionReports.filter(report => isAllStatesView || report['State'] === selectedState);
     reportsToShow.forEach(report => {
@@ -324,11 +325,20 @@ function applyFilters(shouldUpdateView = false) {
         if (lat && lng) {
             if (!isAllStatesView) markerBounds.push([lat, lng]);
             const marker = L.marker([parseFloat(lat), parseFloat(lng)], { icon: inspectionReportIcon });
+
+                let classText = "N/A";
+                if (report['License Type'] === "Class A - Breeder") {
+                    classText = "Breeder"
+                } else if (report['License Type'] === "Class B - Dealer") {
+                    classText = "Dealer"
+                } else if (report['License Type'] === "Class C - Exhibitor") {
+                    classText = "Exhibitor"
+                }
             
             const popupContent = `
                 <div class="info-popup inspection-popup">
                     <h3>${report['Account Name'] || 'Unknown Name'}</h3>
-                    <p1><strong>${report['License Type'] || 'N/A'}</strong></p1>
+                    <p1><strong>${classText}</strong></p1>
                     <br>
                     <p1>(${lat}, ${lng})</p1>
                     <hr>
