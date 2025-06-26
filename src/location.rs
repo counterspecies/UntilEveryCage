@@ -227,7 +227,6 @@ pub fn get_slaughtered_animals(location: &Location) -> String {
 }
 
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AphisReport {
     #[serde(rename = "Account Name")]
@@ -315,4 +314,39 @@ pub fn get_tested_animals(report: &AphisReport) -> String {
     } else {
         tested_animals.join(", ")
     }
+}
+
+// --- NEW STRUCT for Inspection Reports ---
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InspectionReport {
+    #[serde(rename = "Account Name")]
+    pub account_name: String,
+    #[serde(rename = "Customer Number")]
+    pub customer_number: String,
+    #[serde(rename = "Certificate Number")]
+    pub certificate_number: String,
+    #[serde(rename = "License Type")]
+    pub license_type: String,
+    #[serde(rename = "Certificate Status")]
+    pub certificate_status: String,
+    #[serde(rename = "Status Date")]
+    pub status_date: String,
+    #[serde(rename = "Address Line 1")]
+    pub address_line_1: String,
+    #[serde(rename = "Address Line 2")]
+    pub address_line_2: String,
+    #[serde(rename = "City-State-Zip")]
+    pub city_state_zip: String,
+    #[serde(rename = "County")]
+    pub county: String,
+    #[serde(rename = "City")]
+    pub city: String,
+    #[serde(rename = "State")]
+    pub state: String,
+    #[serde(rename = "Zip")]
+    pub zip: String,
+    #[serde(rename = "Geocodio Latitude")]
+    pub latitude: f64,
+    #[serde(rename = "Geocodio Longitude")]
+    pub longitude: f64,
 }

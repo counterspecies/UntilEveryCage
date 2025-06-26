@@ -291,3 +291,17 @@ hr {
 #share-view-btn.copied {
     background-color: #28a745; /* Green for success */
 }
+
+/* This will style the new popups green */
+.inspection-popup .leaflet-popup-content-wrapper {
+    background-color: #d4edda; /* A light green color */
+    color: #155724; /* A dark green for the text */
+}
+
+.inspection-popup .leaflet-popup-tip {
+    background: #d4edda;
+}
+
+.inspection-popup a {
+    color: #0d4a1b; /* Darker green for links */
+}

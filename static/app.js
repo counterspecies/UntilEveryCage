@@ -117,28 +117,40 @@ const labIcon = L.icon({
     popupAnchor: [1, -34],
     shadowSize: [41, 41]
 });
+const inspectionReportIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
 // --- Setup ---
 let allLocations = [];
 let allLabLocations = [];
+let allInspectionReports = [];
 let isInitialDataLoading = true;
 
 // Both clustered and non-clustered layers
-const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
-const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
-const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10  });
+const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11  });
+const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11  });
+const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11  });
+const inspectionReportClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11 });
 
 const slaughterhouseFeatureLayer = L.layerGroup();
 const processingFeatureLayer = L.layerGroup();
 const labFeatureLayer = L.layerGroup();
+const inspectionReportFeatureLayer = L.layerGroup();
+
 
 // DOM element references
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
 const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
+const inspectionReportsCheckbox = document.getElementById('inspectionReportsCheckbox');
 const stateSelector = document.getElementById('state-selector');
 
-// This function reads the current map state and updates the browser's URL bar
 function updateUrlWithCurrentState() {
     if (isInitialDataLoading) {
         return; 
@@ -153,6 +165,8 @@ function updateUrlWithCurrentState() {
     if (slaughterhouseCheckbox.checked) activeLayers.push('slaughter');
     if (meatProcessingCheckbox.checked) activeLayers.push('processing');
     if (testingLabsCheckbox.checked) activeLayers.push('labs');
+    if (inspectionReportsCheckbox.checked) activeLayers.push('inspections');
+
 
     const params = new URLSearchParams();
     params.set('lat', lat);
@@ -163,7 +177,6 @@ function updateUrlWithCurrentState() {
         params.set('layers', activeLayers.join(','));
     }
 
-    // Use history.pushState to update the URL without reloading the page
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     history.pushState({}, '', newUrl);
 }
@@ -173,21 +186,23 @@ function applyFilters(shouldUpdateView = false) {
     const selectedState = stateSelector.value;
     const isAllStatesView = selectedState === 'all';
 
-    // Clear all possible layers to ensure a clean slate
     slaughterhouseClusterLayer.clearLayers();
     processingClusterLayer.clearLayers();
     labClusterLayer.clearLayers();
+    inspectionReportClusterLayer.clearLayers();
     slaughterhouseFeatureLayer.clearLayers();
     processingFeatureLayer.clearLayers();
     labFeatureLayer.clearLayers();
+    inspectionReportFeatureLayer.clearLayers();
     
-    // Remove all layers from map before re-adding the correct ones
     map.removeLayer(slaughterhouseClusterLayer);
     map.removeLayer(processingClusterLayer);
     map.removeLayer(labClusterLayer);
+    map.removeLayer(inspectionReportClusterLayer);
     map.removeLayer(slaughterhouseFeatureLayer);
     map.removeLayer(processingFeatureLayer);
     map.removeLayer(labFeatureLayer);
+    map.removeLayer(inspectionReportFeatureLayer);
 
     const markerBounds = [];
 
@@ -202,7 +217,7 @@ function applyFilters(shouldUpdateView = false) {
         const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
         
         let address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
-       
+        
         let animals_slaughtered_yearly_text = "N/A";
         if (location.slaughter_volume_category) {
             switch (location.slaughter_volume_category) {
@@ -217,9 +232,9 @@ function applyFilters(shouldUpdateView = false) {
         let slaughterText = "";
         if (isSlaughterhouse) {
             slaughterText = `<hr>
-                <p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
-                <p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>
-                `;
+                    <p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
+                    <p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>
+                    `;
         }
 
         let animals_processed_monthly_text = "N/A";
@@ -237,28 +252,25 @@ function applyFilters(shouldUpdateView = false) {
         if (location.dbas && location.dbas.length > 0) {
             otherNamesText = `<p><strong>Doing Business As:</strong> ${location.dbas}</p>`;
         }
-
-        let locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing Plant";
         
         const popupContent = `
-            <div class="info-popup">
-                <h3>${location.establishment_name || 'Unknown Name'}</h3>
-                <p1>${location.latitude}, ${location.longitude}</p1>
-                <hr>
-                <p><strong>Address:</strong> ${address}</p>
-                <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
-                <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
-                ${otherNamesText}
-                <hr>
-                <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
-                <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
-                <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p> 
-                ${slaughterText}
-            </div>
+                <div class="info-popup">
+                    <h3>${location.establishment_name || 'Unknown Name'}</h3>
+                    <p1>${location.latitude}, ${location.longitude}</p1>
+                    <hr>
+                    <p><strong>Address:</strong> ${address}</p>
+                    <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
+                    <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
+                    ${otherNamesText}
+                    <hr>
+                    <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
+                    <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
+                    <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p> 
+                    ${slaughterText}
+                </div>
         `;
         marker.bindPopup(popupContent);
 
-        // Add marker to the correct layer type (clustered or not)
         if (isSlaughterhouse) {
             isAllStatesView ? slaughterhouseClusterLayer.addLayer(marker) : slaughterhouseFeatureLayer.addLayer(marker);
         } else {
@@ -293,18 +305,49 @@ function applyFilters(shouldUpdateView = false) {
         }
     });
 
+    // --- Filter and plot Inspection Reports ---
+    // FIXED: Use correct property `report.State` for filtering
+    const reportsToShow = allInspectionReports.filter(report => isAllStatesView || report['State'] === selectedState);
+    reportsToShow.forEach(report => {
+        // FIXED: Use bracket notation for keys with spaces
+        const lat = report['Geocodio Latitude'];
+        const lng = report['Geocodio Longitude'];
+
+        if (lat && lng) {
+            if (!isAllStatesView) markerBounds.push([lat, lng]);
+            const marker = L.marker([parseFloat(lat), parseFloat(lng)], { icon: inspectionReportIcon });
+            
+            const popupContent = `
+                <div class="info-popup inspection-popup">
+                    <h3>${report['Account Name'] || 'Unknown Name'}</h3>
+                    <p1>(${lat}, ${lng})</p1>
+                    <hr>
+                    <p><strong>Address:</strong> ${report['Address Line 1'] || ''} ${report['Address Line 2'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
+                    <p><strong>License Type:</strong> ${report['License Type'] || 'N/A'}</p>
+                    <p><strong>Certificate Number:</strong> ${report['Certificate Number'] || 'N/A'}</p>
+                    <p><strong>Status:</strong> ${report['Certificate Status'] || 'N/A'} (as of ${report['Status Date'] || 'Unknown'})</p>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+
+            isAllStatesView ? inspectionReportClusterLayer.addLayer(marker) : inspectionReportFeatureLayer.addLayer(marker);
+        }
+    });
+
+
     // Sync visibility for the correct set of layers
     if (isAllStatesView) {
         if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseClusterLayer);
         if (meatProcessingCheckbox.checked) map.addLayer(processingClusterLayer);
         if (testingLabsCheckbox.checked) map.addLayer(labClusterLayer);
+        if (inspectionReportsCheckbox.checked) map.addLayer(inspectionReportClusterLayer);
     } else {
         if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseFeatureLayer);
         if (meatProcessingCheckbox.checked) map.addLayer(processingFeatureLayer);
         if (testingLabsCheckbox.checked) map.addLayer(labFeatureLayer);
+        if (inspectionReportsCheckbox.checked) map.addLayer(inspectionReportFeatureLayer);
     }
     
-
     if (shouldUpdateView) {
         if (!isAllStatesView && markerBounds.length > 0) {
             const bounds = L.latLngBounds(markerBounds);
@@ -320,7 +363,8 @@ function applyFilters(shouldUpdateView = false) {
 slaughterhouseCheckbox.addEventListener('change', () => applyFilters(false));
 meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
 testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
-stateSelector.addEventListener('change', () => applyFilters(true)); // Only this one updates the view
+inspectionReportsCheckbox.addEventListener('change', () => applyFilters(false));
+stateSelector.addEventListener('change', () => applyFilters(true));
 map.on('moveend', updateUrlWithCurrentState);
 
 function getStateFromCityStateZip(cityStateZip) {
@@ -329,54 +373,49 @@ function getStateFromCityStateZip(cityStateZip) {
     return match ? match[1] : null;
 }
 
-// --- Share Button "Copy to Clipboard" Logic ---
-
 const shareViewBtn = document.getElementById('share-view-btn');
 
 shareViewBtn.addEventListener('click', () => {
-    // navigator.clipboard.writeText() is the modern way to copy text.
-    // It returns a Promise, which we can use to provide feedback.
     navigator.clipboard.writeText(window.location.href).then(() => {
-        // SUCCESS!
-        // Give the user visual feedback that the link was copied.
         const originalText = shareViewBtn.textContent;
         shareViewBtn.textContent = 'Link Copied!';
-        shareViewBtn.classList.add('copied'); // Add the green style
+        shareViewBtn.classList.add('copied');
 
-        // Revert the button text back after 2 seconds
         setTimeout(() => {
             shareViewBtn.textContent = originalText;
             shareViewBtn.classList.remove('copied');
         }, 2000);
 
     }).catch(err => {
-        // FAILURE!
-        // This can happen if the user's browser is very old or denies permissions.
         console.error('Failed to copy URL: ', err);
         alert('Could not copy link to clipboard. Please copy the URL from your address bar manually.');
     });
 });
 
 async function initializeApp() {
-
     const loader = document.getElementById('loader-overlay'); 
     try {
         if(loader) loader.style.display = 'flex';
 
         const usdaPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/locations');
         const aphisPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports');
+        const inspectionsPromise = fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports');
 
-        const [usdaResponse, aphisResponse] = await Promise.all([usdaPromise, aphisPromise]);
+        const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([usdaPromise, aphisPromise, inspectionsPromise]);
 
         if (!usdaResponse.ok) throw new Error(`USDA data request failed: ${usdaResponse.status}`);
         if (!aphisResponse.ok) throw new Error(`APHIS data request failed: ${aphisResponse.status}`);
+        if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed: ${inspectionsResponse.status}`);
 
         allLocations = await usdaResponse.json();
         allLabLocations = await aphisResponse.json();
+        allInspectionReports = await inspectionsResponse.json();
         
         const usdaStates = allLocations.map(loc => loc.state);
         const aphisStates = allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip']));
-        const allStateValues = [...usdaStates, ...aphisStates];
+        // FIXED: Use bracket notation `report['State']`
+        const inspectionStates = allInspectionReports.map(report => report['State']); 
+        const allStateValues = [...usdaStates, ...aphisStates, ...inspectionStates];
         const uniqueStates = [...new Set(allStateValues.filter(state => state != null))];
         uniqueStates.sort();
         stateSelector.innerHTML = '<option value="all">All States</option>';
@@ -387,7 +426,6 @@ async function initializeApp() {
             stateSelector.appendChild(option);
         });
 
-        // --- NEW: Check URL for parameters before applying initial filters ---
         const urlParams = new URLSearchParams(window.location.search);
         const stateParam = urlParams.get('state');
         const layersParam = urlParams.get('layers');
@@ -401,6 +439,7 @@ async function initializeApp() {
             slaughterhouseCheckbox.checked = visibleLayers.includes('slaughter');
             meatProcessingCheckbox.checked = visibleLayers.includes('processing');
             testingLabsCheckbox.checked = visibleLayers.includes('labs');
+            inspectionReportsCheckbox.checked = visibleLayers.includes('inspections');
         }
 
         if (stateParam) {
@@ -409,10 +448,9 @@ async function initializeApp() {
 
         if (latParam && lngParam && zoomParam) {
             map.setView([parseFloat(latParam), parseFloat(lngParam)], parseInt(zoomParam));
-            shouldUpdateViewOnLoad = false; // Don't reset the view if we have coordinates
+            shouldUpdateViewOnLoad = false;
         }
 
-        // Call applyFilters with the correct view settings
         applyFilters(shouldUpdateViewOnLoad);
 
     } catch (error) {
