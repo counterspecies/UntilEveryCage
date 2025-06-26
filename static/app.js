@@ -261,7 +261,8 @@ function applyFilters(shouldUpdateView = false) {
         const popupContent = `
                 <div class="info-popup">
                     <h3>${location.establishment_name || 'Unknown Name'}</h3>
-                    <p1>${locationTypeText}</p1>
+                    <p1><strong>${locationTypeText}</strong></p1>
+                    <br>
                     <p1>(${location.latitude}, ${location.longitude})</p1>
                     <hr>
                     <p><strong>Address:</strong> ${address}</p>
@@ -293,7 +294,8 @@ function applyFilters(shouldUpdateView = false) {
             let labPopupContent = `
             <div class="info-popup">
                 <h3>${lab['Account Name'] || 'Unknown Name'}</h3>
-                <p><strong>Registration Type:</strong> ${lab['Registration Type'] || 'N/A'}</p>
+                <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1>
+                <br>
                 <p1>(${lab.latitude},${lab.longitude})</p1>
                 <hr>
                 <p><strong>Address:</strong> ${lab['Address Line 1']} ${lab['Address Line 2']} ${lab['City-State-Zip'] || 'N/A'}</p>
@@ -325,7 +327,8 @@ function applyFilters(shouldUpdateView = false) {
             const popupContent = `
                 <div class="info-popup inspection-popup">
                     <h3>${report['Account Name'] || 'Unknown Name'}</h3>
-                    <p1><strong>License Type:</strong> ${report['License Type'] || 'N/A'}/p1>
+                    <p1><strong>${report['License Type'] || 'N/A'}</strong></p1>
+                    <br>
                     <p1>(${lat}, ${lng})</p1>
                     <hr>
                     <p><strong>Address:</strong> ${report['Address Line 1'] || ''} ${report['Address Line 2'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
