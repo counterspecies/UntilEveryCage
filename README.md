@@ -10,7 +10,7 @@ This is an explicitly abolitionist project. We are not asking for reform. We are
 
 ## Key Features
 
-* **Multi-Layer Interactive Map:** Visualizes thousands of facilities across the United States on distinct, toggleable layers.
+* **Multi-Layer Interactive Map:** Visualizes thousands of facilities (12,000+) across the United States on distinct, toggleable layers.
 * **Comprehensive Data:** Integrates multiple public datasets from the USDA and APHIS, including:
   * **Slaughterhouses & Processing Plants** (USDA)
   * **Animal Research Laboratories** (APHIS)
@@ -61,7 +61,7 @@ To run this project locally for development or research, follow these steps.
     ```
     The server will start, typically on port `8000`.
 
-4.  **View the Application:** Open your web browser and navigate to the address shown in your terminal (e.g., `http://localhost:8000`). The map should load with all the data.
+4.  **View the Application:** Open your web browser and navigate to the address shown in your terminal (e.g., `http://127.0.0.1:8000`). The map should load with all the data.
 
 ## How to Contribute
 
