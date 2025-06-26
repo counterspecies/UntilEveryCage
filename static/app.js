@@ -257,6 +257,8 @@ function applyFilters(shouldUpdateView = false) {
         if (isSlaughterhouse) {
             locationTypeText = "Slaughterhouse";
         }
+
+        //=<p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
         
         const popupContent = `
                 <div class="info-popup">
@@ -270,7 +272,6 @@ function applyFilters(shouldUpdateView = false) {
                     <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
                     ${otherNamesText}
                     <hr>
-                    <p><strong>Main Activities:</strong> ${location.activities || 'N/A'}</p>
                     <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
                     <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p> 
                     ${slaughterText}
