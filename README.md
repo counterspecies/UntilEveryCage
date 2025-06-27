@@ -77,7 +77,7 @@ The source code for this project is licensed under the **GNU Affero General Publ
 
 This is a "copyleft" license, which means that any derivative work (e.g., if you run a modified version of this code on your own public-facing website) must also be open-sourced under the same AGPLv3 license. This ensures the project and its derivatives remain free and open for the entire community, preventing corporate co-opting. You can read the full license text in the `LICENSE` file.
 
-The compiled data presented on this map is licensed separately under a <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.  The full text of this license can be found in the `DATA_LICENSE.md` file.
+The compiled data presented on this map is licensed separately under a <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.  The full text of this license can be found in the `DATA_LICENSE` file.
 
 ## Acknowledgements
 
