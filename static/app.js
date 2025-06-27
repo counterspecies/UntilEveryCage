@@ -11,7 +11,7 @@
  * - Applying user filters (by state and data type).
  * - Dynamically generating detailed popups for each map marker.
  * - Updating the browser URL to allow for shareable map views.
- * * Main Dependencies: Leaflet.js, Leaflet.markercluster, leaflet-geosearch
+ * * Main Dependencies: Leaflet.js, Leaflet.markercluster
  */
 
 // =============================================================================
@@ -331,11 +331,30 @@ function buildUsdaPopup(location, isSlaughterhouse) {
     const address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
     const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
 
+    let animals_processed_monthly_text = "N/A";
+    if (location.processing_volume_category) {
+        switch (location.processing_volume_category) {
+            case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds of products processed per month."; break;
+            case "2.0": animals_processed_monthly_text = "10,000 to 100,000 pounds of products processed per month."; break;
+            case "3.0": animals_processed_monthly_text = "100,000 to 1,000,000 pounds of products processed per month."; break;
+            case "4.0": animals_processed_monthly_text = "1,000,000 to 10,000,000 pounds of products processed per month."; break;
+            case "5.0": animals_processed_monthly_text = "Over 10,000,000 pounds of products processed per month."; break;
+        }
+    }
+
     let slaughterText = "";
     if (isSlaughterhouse) {
         let animals_slaughtered_yearly_text = "N/A";
-        if (location.slaughter_volume_category) { /* ... switch statement ... */ }
-        slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>`;
+        if (location.slaughter_volume_category) {
+            switch (location.slaughter_volume_category) {
+                case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals killed per year."; break;
+                case "2.0": animals_slaughtered_yearly_text = "1,000 to 10,000 animals killed per year."; break;
+                case "3.0": animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year."; break;
+                case "4.0": animals_slaughtered_yearly_text = "100,000 to 10,000,000 animals killed per year."; break;
+                case "5.0": animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year."; break;
+            }
+        }
+        slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p><p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>`;
     }
 
     let otherNamesText = location.dbas ? `<p><strong>Doing Business As:</strong> ${location.dbas}</p>` : "";
@@ -350,6 +369,9 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
             <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
             ${otherNamesText}
+            <hr>
+            <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
+            <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
             ${slaughterText}
         </div>`;
 }
@@ -506,6 +528,5 @@ async function initializeApp() {
         updateUrlWithCurrentState();
     }
 }
-
 
 initializeApp();
