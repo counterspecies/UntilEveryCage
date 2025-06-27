@@ -403,7 +403,6 @@ function buildInspectionReportPopup(report) {
             <hr>
             <p><strong>Address:</strong> ${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
             <p><strong>Certificate Number:</strong> ${report['Certificate Number'] || 'N/A'}</p>
-            <p><strong>Status:</strong> ${report['Certificate Status'] || 'N/A'} (${report['Status Date'] || 'Unknown'})</p>
         </div>`;
 }
 
