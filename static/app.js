@@ -166,10 +166,10 @@ let isInitialDataLoading = true; // Flag to prevent URL updates during initial l
 // For each data type, we need two types of layers:
 // 1. A MarkerClusterGroup for the "All States" view to handle performance with many markers.
 // 2. A regular FeatureLayer for the single-state view where clustering is not needed.
-const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11 });
-const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11 });
-const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11 });
-const inspectionReportClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 11 });
+const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
+const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
+const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
+const inspectionReportClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
 
 const slaughterhouseFeatureLayer = L.layerGroup();
 const processingFeatureLayer = L.layerGroup();
