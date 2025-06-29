@@ -26,6 +26,7 @@ fetch('footer.html')
 //  1. MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
 
+
 // Define the absolute geographical boundaries of the map to prevent scrolling too far.
 const southWest = L.latLng(-90, -180);
 const northEast = L.latLng(90, 180);
@@ -64,8 +65,6 @@ L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 /**
  * Custom Fullscreen Control for Leaflet.
- * This provides a simple fullscreen button that works across different browsers
- * and includes a fallback for browsers that don't support the Fullscreen API.
  */
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
@@ -79,7 +78,6 @@ L.Control.CustomFullscreen = L.Control.extend({
         this.link.href = '#';
         this.link.innerHTML = this.options.enterText;
         this._map = map;
-        // Add event listeners for various browser implementations of fullscreen change.
         L.DomEvent.on(document, 'fullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.on(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.on(document, 'mozfullscreenchange', this._onFullscreenChange, this);
@@ -89,7 +87,6 @@ L.Control.CustomFullscreen = L.Control.extend({
         return container;
     },
     onRemove: function (map) {
-        // Clean up event listeners when the control is removed.
         L.DomEvent.off(document, 'fullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.off(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
         L.DomEvent.off(document, 'mozfullscreenchange', this._onFullscreenChange, this);
@@ -98,22 +95,16 @@ L.Control.CustomFullscreen = L.Control.extend({
     _toggleFullscreen: function () {
         const container = this._map.getContainer();
         if (L.DomUtil.hasClass(container, 'map-pseudo-fullscreen')) {
-            // Exit pseudo-fullscreen
             L.DomUtil.removeClass(container, 'map-pseudo-fullscreen');
             this.link.innerHTML = this.options.enterText;
             this._map.invalidateSize();
             return;
         }
-        // Check for native fullscreen support
         const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         if (fullscreenElement) {
-            // Exit native fullscreen
             const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-            if (exitMethod) {
-                exitMethod.call(document);
-            }
+            if (exitMethod) exitMethod.call(document);
         } else {
-            // Enter native fullscreen, with a fallback to pseudo-fullscreen
             const requestMethod = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
             if (requestMethod) {
                 requestMethod.call(container);
@@ -126,15 +117,41 @@ L.Control.CustomFullscreen = L.Control.extend({
     },
     _onFullscreenChange: function () {
         const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        if (fullscreenElement === this._map.getContainer()) {
-            this.link.innerHTML = this.options.exitText;
-        } else {
-            L.DomUtil.removeClass(this._map.getContainer(), 'map-pseudo-fullscreen');
-            this.link.innerHTML = this.options.enterText;
-        }
+        this.link.innerHTML = fullscreenElement ? this.options.exitText : this.options.enterText;
     }
 });
 map.addControl(new L.Control.CustomFullscreen());
+
+/**
+ * Custom Find Me Control
+ */
+L.Control.FindMe = L.Control.extend({
+    options: {
+        position: 'topleft'
+    },
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-find-me');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Find my location';
+
+        L.DomEvent.on(link, 'click', L.DomEvent.stop)
+                  .on(link, 'click', () => {
+                      map.locate({ setView: true, maxZoom: 12 });
+                  });
+        
+        return container;
+    }
+});
+map.addControl(new L.Control.FindMe());
+
+map.on('locationfound', e => {
+    L.marker(e.latlng).addTo(map)
+     .bindPopup("You are somewhere around here.").openPopup();
+});
+map.on('locationerror', e => {
+    alert(e.message);
+});
 
 
 // =============================================================================
@@ -164,21 +181,16 @@ const inspectionReportIcon = L.icon({
 });
 
 // --- Application State Management ---
-// Global arrays to hold the master data fetched from the API.
 let allLocations = [];
 let allLabLocations = [];
 let allInspectionReports = [];
-let isInitialDataLoading = true; // Flag to prevent URL updates during initial load.
+let isInitialDataLoading = true;
 
 // --- Layer Groups ---
-// For each data type, we need two types of layers:
-// 1. A MarkerClusterGroup for the "All States" view to handle performance with many markers.
-// 2. A regular FeatureLayer for the single-state view where clustering is not needed.
-const slaughterhouseClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
-const processingClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
-const labClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
-const inspectionReportClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 75, disableClusteringAtZoom: 10 });
+// A SINGLE cluster group for all marker types
+const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 60, disableClusteringAtZoom: 9 });
 
+// Individual layers for when clustering is disabled
 const slaughterhouseFeatureLayer = L.layerGroup();
 const processingFeatureLayer = L.layerGroup();
 const labFeatureLayer = L.layerGroup();
@@ -186,49 +198,44 @@ const inspectionReportFeatureLayer = L.layerGroup();
 
 
 // --- DOM Element References ---
-// Caching these references improves performance by avoiding repeated DOM lookups.
 const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
 const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
 const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
-const inspectionReportsCheckbox = document.getElementById('inspectionReportsCheckbox');
+const breedersCheckbox = document.getElementById('breedersCheckbox');
+const dealersCheckbox = document.getElementById('dealersCheckbox');
+const exhibitorsCheckbox = document.getElementById('exhibitorsCheckbox');
 const stateSelector = document.getElementById('state-selector');
 const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
+const statsContainer = document.getElementById('stats-container');
 
 // =============================================================================
 //  4. CORE APPLICATION LOGIC
 // =============================================================================
 
-/**
- * Updates the browser's URL with the current map state (center, zoom, filters).
- * This allows for shareable links.
- */
 function updateUrlWithCurrentState() {
-    if (isInitialDataLoading) {
-        return; 
-    }
+    if (isInitialDataLoading) return;
+    
     const center = map.getCenter();
     const zoom = map.getZoom();
-    const lat = center.lat.toFixed(5);
-    const lng = center.lng.toFixed(5);
-    const selectedState = stateSelector.value;
+    const params = new URLSearchParams({
+        lat: center.lat.toFixed(5),
+        lng: center.lng.toFixed(5),
+        zoom: zoom,
+        state: stateSelector.value,
+    });
+
     const searchTerm = nameSearchInput.value;
+    if (searchTerm) params.set('search', searchTerm);
 
     let activeLayers = [];
     if (slaughterhouseCheckbox.checked) activeLayers.push('slaughter');
     if (meatProcessingCheckbox.checked) activeLayers.push('processing');
     if (testingLabsCheckbox.checked) activeLayers.push('labs');
-    if (inspectionReportsCheckbox.checked) activeLayers.push('inspections');
+    if (breedersCheckbox.checked) activeLayers.push('breeders');
+    if (dealersCheckbox.checked) activeLayers.push('dealers');
+    if (exhibitorsCheckbox.checked) activeLayers.push('exhibitors');
 
-
-    const params = new URLSearchParams();
-    params.set('lat', lat);
-    params.set('lng', lng);
-    params.set('zoom', zoom);
-    params.set('state', selectedState);
-    if (searchTerm) {
-        params.set('search', searchTerm);
-    }
     if (activeLayers.length > 0) {
         params.set('layers', activeLayers.join(','));
     }
@@ -237,121 +244,100 @@ function updateUrlWithCurrentState() {
     history.pushState({}, '', newUrl);
 }
 
-/**
- * Main filtering function. Clears all layers, filters the master data arrays
- * based on the selected state and name search, and re-plots the visible markers.
- * Conditionally enables clustering based on the number of results.
- * @param {boolean} shouldUpdateView - If true, the map will pan/zoom to fit the new markers.
- */
 function applyFilters(shouldUpdateView = false) {
     const selectedState = stateSelector.value;
     const searchTerm = nameSearchInput.value.toLowerCase().trim();
     const isAllStatesView = selectedState === 'all';
 
-    // --- 1. Clear all layers to ensure a clean slate ---
-    slaughterhouseClusterLayer.clearLayers();
-    processingClusterLayer.clearLayers();
-    labClusterLayer.clearLayers();
-    inspectionReportClusterLayer.clearLayers();
-    slaughterhouseFeatureLayer.clearLayers();
-    processingFeatureLayer.clearLayers();
-    labFeatureLayer.clearLayers();
-    inspectionReportFeatureLayer.clearLayers();
+    // --- 1. Clear all layers ---
+    unifiedClusterLayer.clearLayers();
+    [slaughterhouseFeatureLayer, processingFeatureLayer, labFeatureLayer, inspectionReportFeatureLayer]
+        .forEach(layer => layer.clearLayers());
     
-    map.removeLayer(slaughterhouseClusterLayer);
-    map.removeLayer(processingClusterLayer);
-    map.removeLayer(labClusterLayer);
-    map.removeLayer(inspectionReportClusterLayer);
-    map.removeLayer(slaughterhouseFeatureLayer);
-    map.removeLayer(processingFeatureLayer);
-    map.removeLayer(labFeatureLayer);
-    map.removeLayer(inspectionReportFeatureLayer);
+    map.removeLayer(unifiedClusterLayer);
+    [slaughterhouseFeatureLayer, processingFeatureLayer, labFeatureLayer, inspectionReportFeatureLayer]
+        .forEach(layer => map.removeLayer(layer));
 
-    // --- 2. Filter data first to get counts ---
-    const filteredUsdaLocations = allLocations.filter(location => {
-        const stateMatch = isAllStatesView || location.state === selectedState;
-        const nameMatch = !searchTerm ||
-            (location.establishment_name && location.establishment_name.toLowerCase().includes(searchTerm)) ||
-            (location.dbas && location.dbas.toLowerCase().includes(searchTerm));
-        return stateMatch && nameMatch;
-    });
+    // --- 2. Filter data sources ---
+    const showBreeders = breedersCheckbox.checked;
+    const showDealers = dealersCheckbox.checked;
+    const showExhibitors = exhibitorsCheckbox.checked;
+    
+    const filteredUsdaLocations = allLocations.filter(loc => 
+        (isAllStatesView || loc.state === selectedState) &&
+        (!searchTerm || 
+         (loc.establishment_name && loc.establishment_name.toLowerCase().includes(searchTerm)) ||
+         (loc.dbas && loc.dbas.toLowerCase().includes(searchTerm)))
+    );
 
-    const filteredLabs = allLabLocations.filter(lab => {
-        const stateMatch = isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState;
-        const nameMatch = !searchTerm ||
-            (lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm));
-        return stateMatch && nameMatch;
-    });
+    const filteredLabs = allLabLocations.filter(lab =>
+        (isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState) &&
+        (!searchTerm || (lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm)))
+    );
 
     const filteredInspections = allInspectionReports.filter(report => {
         const stateMatch = isAllStatesView || report['State'] === selectedState;
-        const nameMatch = !searchTerm ||
-            (report['Account Name'] && report['Account Name'].toLowerCase().includes(searchTerm));
-        return stateMatch && nameMatch;
+        const nameMatch = !searchTerm || (report['Account Name'] && report['Account Name'].toLowerCase().includes(searchTerm));
+        if (!stateMatch || !nameMatch) return false;
+
+        const licenseType = report['License Type'] || '';
+        if (showBreeders && licenseType === 'Class A - Breeder') return true;
+        if (showDealers && licenseType === 'Class B - Dealer') return true;
+        if (showExhibitors && licenseType === 'Class C - Exhibitor') return true;
+        return false;
     });
 
-    // --- 3. Decide whether to use clustering based on total markers ---
-    const totalMarkerCount = filteredUsdaLocations.length + filteredLabs.length + filteredInspections.length;
+    const slaughterhouses = filteredUsdaLocations.filter(loc => loc.slaughter && loc.slaughter.toLowerCase() === 'yes');
+    const processingPlants = filteredUsdaLocations.filter(loc => !loc.slaughter || loc.slaughter.toLowerCase() !== 'yes');
+    
+    // --- 3. Decide on clustering and update stats ---
+    let totalMarkerCount = 0;
+    if (slaughterhouseCheckbox.checked) totalMarkerCount += slaughterhouses.length;
+    if (meatProcessingCheckbox.checked) totalMarkerCount += processingPlants.length;
+    if (testingLabsCheckbox.checked) totalMarkerCount += filteredLabs.length;
+    totalMarkerCount += filteredInspections.length;
+
     const CLUSTER_THRESHOLD = 1000;
     const useClustering = totalMarkerCount >= CLUSTER_THRESHOLD;
 
-    const markerBounds = []; // Used to calculate the bounds for auto-zoom.
+    updateStats(slaughterhouses.length, processingPlants.length, filteredLabs.length, filteredInspections.length);
 
-    // --- 4. Plot markers, adding them to the correct layer type ---
-    filteredUsdaLocations.forEach(location => {
-        if (!location.latitude || !location.longitude) return;
-        if (!isAllStatesView) markerBounds.push([location.latitude, location.longitude]);
-
-        const isSlaughterhouse = location.slaughter && location.slaughter.toLowerCase() === 'yes';
-        const markerIcon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
-        const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
-        
-        const popupContent = buildUsdaPopup(location, isSlaughterhouse);
-        marker.bindPopup(popupContent);
-
-        if (isSlaughterhouse) {
-            useClustering ? slaughterhouseClusterLayer.addLayer(marker) : slaughterhouseFeatureLayer.addLayer(marker);
-        } else {
-            useClustering ? processingClusterLayer.addLayer(marker) : processingFeatureLayer.addLayer(marker);
+    // --- 4. Plot markers and add to layers ---
+    const markerBounds = [];
+    const addMarkerToLayer = (marker, layer) => {
+        if (marker) {
+            layer.addLayer(marker);
+            if (!isAllStatesView) markerBounds.push(marker.getLatLng());
         }
-    });
+    };
 
-    filteredLabs.forEach(lab => {
-        if (lab.latitude && lab.longitude) {
-            if (!isAllStatesView) markerBounds.push([lab.latitude, lab.longitude]);
-            const marker = L.marker([lab.latitude, lab.longitude], { icon: labIcon });
-            const popupContent = buildLabPopup(lab);
-            marker.bindPopup(popupContent);
-            useClustering ? labClusterLayer.addLayer(marker) : labFeatureLayer.addLayer(marker);
-        }
-    });
+    const slaughterLayer = useClustering ? unifiedClusterLayer : slaughterhouseFeatureLayer;
+    const processingLayer = useClustering ? unifiedClusterLayer : processingFeatureLayer;
+    const labLayer = useClustering ? unifiedClusterLayer : labFeatureLayer;
+    const inspectionLayer = useClustering ? unifiedClusterLayer : inspectionReportFeatureLayer;
 
-    filteredInspections.forEach(report => {
-        const lat = report['Geocodio Latitude'];
-        const lng = report['Geocodio Longitude'];
-        if (lat && lng) {
-            if (!isAllStatesView) markerBounds.push([lat, lng]);
-            const marker = L.marker([parseFloat(lat), parseFloat(lng)], { icon: inspectionReportIcon });
-            const popupContent = buildInspectionReportPopup(report);
-            marker.bindPopup(popupContent);
-            useClustering ? inspectionReportClusterLayer.addLayer(marker) : inspectionReportFeatureLayer.addLayer(marker);
-        }
-    });
-
-    // --- 5. Add the correct layers back to the map based on clustering decision ---
+    if (slaughterhouseCheckbox.checked) {
+        slaughterhouses.forEach(loc => addMarkerToLayer(plotMarker(loc, true), slaughterLayer));
+    }
+    if (meatProcessingCheckbox.checked) {
+        processingPlants.forEach(loc => addMarkerToLayer(plotMarker(loc, false), processingLayer));
+    }
+    if (testingLabsCheckbox.checked) {
+        filteredLabs.forEach(lab => addMarkerToLayer(plotMarker(lab, 'lab'), labLayer));
+    }
+    filteredInspections.forEach(report => addMarkerToLayer(plotMarker(report, 'inspection'), inspectionLayer));
+    
+    // --- 5. Add layers to map ---
     if (useClustering) {
-        if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseClusterLayer);
-        if (meatProcessingCheckbox.checked) map.addLayer(processingClusterLayer);
-        if (testingLabsCheckbox.checked) map.addLayer(labClusterLayer);
-        if (inspectionReportsCheckbox.checked) map.addLayer(inspectionReportClusterLayer);
+        map.addLayer(unifiedClusterLayer);
     } else {
         if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseFeatureLayer);
         if (meatProcessingCheckbox.checked) map.addLayer(processingFeatureLayer);
         if (testingLabsCheckbox.checked) map.addLayer(labFeatureLayer);
-        if (inspectionReportsCheckbox.checked) map.addLayer(inspectionReportFeatureLayer);
+        if (filteredInspections.length > 0) map.addLayer(inspectionReportFeatureLayer);
     }
     
-    // --- 6. Pan and zoom the map if necessary ---
+    // --- 6. Adjust map view ---
     if (shouldUpdateView) {
         if (!isAllStatesView && markerBounds.length > 0) {
             map.fitBounds(L.latLngBounds(markerBounds).pad(0.1));
@@ -362,10 +348,49 @@ function applyFilters(shouldUpdateView = false) {
     updateUrlWithCurrentState();
 }
 
+function plotMarker(data, type) {
+    let lat, lng, icon, popupContent;
+
+    if (type === 'lab') {
+        lat = data.latitude;
+        lng = data.longitude;
+        icon = labIcon;
+        popupContent = buildLabPopup(data);
+    } else if (type === 'inspection') {
+        lat = parseFloat(data['Geocodio Latitude']);
+        lng = parseFloat(data['Geocodio Longitude']);
+        icon = inspectionReportIcon;
+        popupContent = buildInspectionReportPopup(data);
+    } else { // USDA Location
+        lat = data.latitude;
+        lng = data.longitude;
+        const isSlaughterhouse = type === true;
+        icon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
+        popupContent = buildUsdaPopup(data, isSlaughterhouse);
+    }
+
+    if (lat && lng) {
+        const marker = L.marker([lat, lng], { icon: icon });
+        marker.bindPopup(popupContent);
+        return marker;
+    }
+    return null; // Return null if no coordinates
+}
+
+function updateStats(slaughterhouses, processing, labs, inspections) {
+    let stats = [];
+    if (slaughterhouseCheckbox.checked) stats.push(`${slaughterhouses.toLocaleString()} Slaughterhouses`);
+    if (meatProcessingCheckbox.checked) stats.push(`${processing.toLocaleString()} Processing Plants`);
+    if (testingLabsCheckbox.checked) stats.push(`${labs.toLocaleString()} Animal Labs`);
+    if (breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) stats.push(`${inspections.toLocaleString()} Other Registrants`);
+    
+    statsContainer.innerHTML = stats.length > 0 ? `Showing: ${stats.join(', ')}` : 'No facilities match the current filters.';
+}
+
 // =============================================================================
 //  5. POPUP BUILDER HELPER FUNCTIONS
 // =============================================================================
-
+// ... (buildUsdaPopup, buildLabPopup, buildInspectionReportPopup functions are unchanged) ...
 function buildUsdaPopup(location, isSlaughterhouse) {
     const address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
     const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
@@ -445,130 +470,104 @@ function buildInspectionReportPopup(report) {
         </div>`;
 }
 
-
 // =============================================================================
 //  6. EVENT LISTENERS & UTILITY FUNCTIONS
 // =============================================================================
 
-// Attach event listeners to all filter controls.
-slaughterhouseCheckbox.addEventListener('change', () => applyFilters(false));
-meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
-testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
-inspectionReportsCheckbox.addEventListener('change', () => applyFilters(false));
-stateSelector.addEventListener('change', () => applyFilters(true)); // Re-zoom map on state change
-nameSearchInput.addEventListener('input', () => applyFilters(false));
-map.on('moveend', updateUrlWithCurrentState); // Update URL when map is panned/zoomed
+[slaughterhouseCheckbox, meatProcessingCheckbox, testingLabsCheckbox, breedersCheckbox, dealersCheckbox, exhibitorsCheckbox]
+.forEach(checkbox => checkbox.addEventListener('change', () => applyFilters(false)));
 
-/**
- * Extracts a two-letter state code from a "City, ST" string.
- * @param {string} cityStateZip - The combined location string.
- * @returns {string|null} The state code or null if not found.
- */
+stateSelector.addEventListener('change', () => applyFilters(true));
+nameSearchInput.addEventListener('input', () => applyFilters(false));
+map.on('moveend', updateUrlWithCurrentState);
+
 function getStateFromCityStateZip(cityStateZip) {
     if (!cityStateZip || typeof cityStateZip !== 'string') return null;
     const match = cityStateZip.match(/, ([A-Z]{2})/);
     return match ? match[1] : null;
 }
 
-// Logic for the "Share View" button to copy the current URL.
 shareViewBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-        const originalText = shareViewBtn.textContent;
         shareViewBtn.textContent = 'Link Copied!';
         shareViewBtn.classList.add('copied');
         setTimeout(() => {
-            shareViewBtn.textContent = originalText;
+            shareViewBtn.textContent = 'Share View';
             shareViewBtn.classList.remove('copied');
         }, 2000);
     }).catch(err => {
         console.error('Failed to copy URL: ', err);
-        alert('Could not copy link. Please copy the URL from your address bar.');
     });
 });
-
 
 // =============================================================================
 //  7. APPLICATION INITIALIZATION
 // =============================================================================
 
-/**
- * Main entry point for the application. Fetches all data, sets up controls,
- * and renders the initial map view.
- */
 async function initializeApp() {
     const loader = document.getElementById('loader-overlay'); 
     try {
         if(loader) loader.style.display = 'flex';
 
-        // Fetch all data sources in parallel for faster loading.
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
             fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
             fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
             fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports')
         ]);
 
-        if (!usdaResponse.ok) throw new Error(`USDA data request failed: ${usdaResponse.status}`);
-        if (!aphisResponse.ok) throw new Error(`APHIS data request failed: ${aphisResponse.status}`);
-        if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed: ${inspectionsResponse.status}`);
+        if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
+        if (!aphisResponse.ok) throw new Error(`APHIS data request failed`);
+        if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed`);
 
         allLocations = await usdaResponse.json();
         allLabLocations = await aphisResponse.json();
         allInspectionReports = await inspectionsResponse.json();
         
-        // --- Dynamically populate the state filter dropdown ---
-        const allStateValues = [
+        const allStateValues = [...new Set([
             ...allLocations.map(loc => loc.state),
             ...allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])),
             ...allInspectionReports.map(report => report['State'])
-        ];
-        const uniqueStates = [...new Set(allStateValues.filter(state => state != null))];
-        uniqueStates.sort();
+        ].filter(Boolean))];
+        allStateValues.sort();
+        
         stateSelector.innerHTML = '<option value="all">All States</option>';
-        uniqueStates.forEach(state => {
+        allStateValues.forEach(state => {
             const option = document.createElement('option');
             option.value = state;
             option.textContent = state;
             stateSelector.appendChild(option);
         });
 
-        // --- Check for URL parameters to restore a shared view ---
         const urlParams = new URLSearchParams(window.location.search);
-        const stateParam = urlParams.get('state');
         const layersParam = urlParams.get('layers');
-        const searchParam = urlParams.get('search');
-        const latParam = urlParams.get('lat');
-        const lngParam = urlParams.get('lng');
-        const zoomParam = urlParams.get('zoom');
-        let shouldUpdateViewOnLoad = true;
-
         if (layersParam) {
-            const visibleLayers = layersParam.split(',');
-            slaughterhouseCheckbox.checked = visibleLayers.includes('slaughter');
-            meatProcessingCheckbox.checked = visibleLayers.includes('processing');
-            testingLabsCheckbox.checked = visibleLayers.includes('labs');
-            inspectionReportsCheckbox.checked = visibleLayers.includes('inspections');
+            const visibleLayers = new Set(layersParam.split(','));
+            slaughterhouseCheckbox.checked = visibleLayers.has('slaughter');
+            meatProcessingCheckbox.checked = visibleLayers.has('processing');
+            testingLabsCheckbox.checked = visibleLayers.has('labs');
+            breedersCheckbox.checked = visibleLayers.has('breeders');
+            dealersCheckbox.checked = visibleLayers.has('dealers');
+            exhibitorsCheckbox.checked = visibleLayers.has('exhibitors');
         }
-        if (stateParam) {
-            stateSelector.value = stateParam;
-        }
-        if (searchParam) {
-            nameSearchInput.value = searchParam;
-        }
-        if (latParam && lngParam && zoomParam) {
-            map.setView([parseFloat(latParam), parseFloat(lngParam)], parseInt(zoomParam));
-            shouldUpdateViewOnLoad = false; // Don't reset view if we have coordinates.
+        
+        stateSelector.value = urlParams.get('state') || 'all';
+        nameSearchInput.value = urlParams.get('search') || '';
+
+        let shouldUpdateViewOnLoad = true;
+        if (urlParams.has('lat') && urlParams.has('lng') && urlParams.has('zoom')) {
+            map.setView([parseFloat(urlParams.get('lat')), parseFloat(urlParams.get('lng'))], parseInt(urlParams.get('zoom')));
+            shouldUpdateViewOnLoad = false;
         }
 
-        // Apply the initial filters based on default state or URL params.
         applyFilters(shouldUpdateViewOnLoad);
 
     } catch (error) {
         console.error('Failed to fetch initial data:', error);
-        alert(`There was a critical error fetching data from the server: ${error.message}`);
+        if(statsContainer) statsContainer.innerHTML = `Could not load map data. Please try refreshing the page.`;
     } finally {
         if(loader) loader.style.display = 'none';
         isInitialDataLoading = false;
-        updateUrlWithCurrentState();
+        if(!urlParams.has('lat')) updateUrlWithCurrentState();
     }
 }
 

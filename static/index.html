@@ -57,37 +57,50 @@
 </header>
 
 <div id="map"></div>
-
 <div id="filter-container">
     <label for="state-selector">State:</label>
     <select id="state-selector">
         <option value="all">All States</option>
     </select>
-
+    
     <label for="name-search-input">Name:</label>
     <input type="text" id="name-search-input" placeholder="Search by name...">
-    
+
     <button id="share-view-btn">Share View</button>
     <hr>
-    <input type="checkbox" id="slaughterhousesCheckbox" checked> 
-    <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
     
-    <input type="checkbox" id="testingLabsCheckbox" checked>
-    <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
+    <div id="stats-container"></div>
 
-    <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
-    <label for="meatProcessingPlantsCheckbox">Show Processing-Only Facilities</label>
+    <div class="filter-grid">
+        <div class="checkbox-container">
+            <input type="checkbox" id="slaughterhousesCheckbox" checked> 
+            <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
+        </div>
 
-    <div class="checkbox-container">
-        <input type="checkbox" id="inspectionReportsCheckbox" name="inspectionReports" checked>
-        <label for="inspectionReportsCheckbox">Show Breeders, Dealers, and Exhibitors</label>
+        <div class="checkbox-container">
+            <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
+            <label for="meatProcessingPlantsCheckbox">Show Processing-Only Facilities</label>
+        </div>
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="testingLabsCheckbox" checked>
+            <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
+        </div>
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="breedersCheckbox" checked>
+            <label for="breedersCheckbox">Show Breeders (Class A)</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="dealersCheckbox" checked>
+            <label for="dealersCheckbox">Show Dealers (Class B)</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="exhibitorsCheckbox" checked>
+            <label for="exhibitorsCheckbox">Show Exhibitors (Class C)</label>
+        </div>
     </div>
-
-
 </div>
-
-
-
 
 <div class="content-wrapper">
     <div class="manifesto-container">
