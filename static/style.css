@@ -341,3 +341,27 @@ hr {
     display: flex;
     align-items: center;
 }
+
+#share-view-btn,
+#reset-filters-btn {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #6c757d; /* A neutral grey */
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#reset-filters-btn:hover {
+    background-color: #5a6268;
+}
+
+/* Make the share button blue again */
+#share-view-btn {
+    background-color: #007bff;
+}
+#share-view-btn:hover {
+    background-color: #0056b3;
+}

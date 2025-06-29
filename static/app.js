@@ -208,6 +208,7 @@ const stateSelector = document.getElementById('state-selector');
 const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
 const statsContainer = document.getElementById('stats-container');
+const resetFiltersBtn = document.getElementById('reset-filters-btn');
 
 // =============================================================================
 //  4. CORE APPLICATION LOGIC
@@ -431,6 +432,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <hr>
             <p><strong>Address:</strong> ${address}</p>
             <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
+            <p><strong>Grant Date:</strong> ${location.grant_date || 'N/A'}</p>
             <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
             ${otherNamesText}
             <hr>
@@ -498,6 +500,18 @@ shareViewBtn.addEventListener('click', () => {
     }).catch(err => {
         console.error('Failed to copy URL: ', err);
     });
+});
+
+resetFiltersBtn.addEventListener('click', () => {
+    stateSelector.value = 'all';
+    nameSearchInput.value = '';
+    slaughterhouseCheckbox.checked = true;
+    meatProcessingCheckbox.checked = true;
+    testingLabsCheckbox.checked = true;
+    breedersCheckbox.checked = true;
+    dealersCheckbox.checked = true;
+    exhibitorsCheckbox.checked = true;
+    applyFilters(true); // true to reset the map view
 });
 
 // =============================================================================

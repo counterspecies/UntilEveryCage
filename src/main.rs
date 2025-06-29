@@ -103,6 +103,7 @@ async fn read_locations_from_csv() -> Result<Vec<LocationResponse>, Box<dyn Erro
             slaughter_volume_category: record.slaughter_volume_category,
             processing_volume_category: record.processing_volume_category,
             animals_processed,
+            grant_date: record.grant_date
         });
     }
     Ok(locations)
@@ -156,4 +157,5 @@ struct LocationResponse {
     processing_volume_category: String,
     dbas: String,
     phone: String,
+    grant_date: String
 }
