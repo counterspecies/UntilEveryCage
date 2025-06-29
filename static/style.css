@@ -100,11 +100,15 @@ hr {
     margin-left: 0.5rem;
 }
 
-#state-selector {
+
+
+#state-selector,
+#name-search-input {
     padding: 8px 12px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1rem;
+    margin-left: 0.5rem;
 }
 
 /* --- Map & Popups --- */

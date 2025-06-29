@@ -14,6 +14,14 @@
  * * Main Dependencies: Leaflet.js, Leaflet.markercluster
  */
 
+fetch('footer.html')
+    .then((response) => {
+        return response.text()
+    })
+    .then(text => {
+        document.querySelector("#footer-stub").innerHTML = text; 
+    });
+
 // =============================================================================
 //  1. MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
@@ -184,6 +192,7 @@ const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsChec
 const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const inspectionReportsCheckbox = document.getElementById('inspectionReportsCheckbox');
 const stateSelector = document.getElementById('state-selector');
+const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
 
 // =============================================================================
@@ -203,6 +212,7 @@ function updateUrlWithCurrentState() {
     const lat = center.lat.toFixed(5);
     const lng = center.lng.toFixed(5);
     const selectedState = stateSelector.value;
+    const searchTerm = nameSearchInput.value;
 
     let activeLayers = [];
     if (slaughterhouseCheckbox.checked) activeLayers.push('slaughter');
@@ -216,6 +226,9 @@ function updateUrlWithCurrentState() {
     params.set('lng', lng);
     params.set('zoom', zoom);
     params.set('state', selectedState);
+    if (searchTerm) {
+        params.set('search', searchTerm);
+    }
     if (activeLayers.length > 0) {
         params.set('layers', activeLayers.join(','));
     }
@@ -226,11 +239,13 @@ function updateUrlWithCurrentState() {
 
 /**
  * Main filtering function. Clears all layers, filters the master data arrays
- * based on the selected state, and re-plots the visible markers.
+ * based on the selected state and name search, and re-plots the visible markers.
+ * Conditionally enables clustering based on the number of results.
  * @param {boolean} shouldUpdateView - If true, the map will pan/zoom to fit the new markers.
  */
 function applyFilters(shouldUpdateView = false) {
     const selectedState = stateSelector.value;
+    const searchTerm = nameSearchInput.value.toLowerCase().trim();
     const isAllStatesView = selectedState === 'all';
 
     // --- 1. Clear all layers to ensure a clean slate ---
@@ -252,10 +267,38 @@ function applyFilters(shouldUpdateView = false) {
     map.removeLayer(labFeatureLayer);
     map.removeLayer(inspectionReportFeatureLayer);
 
+    // --- 2. Filter data first to get counts ---
+    const filteredUsdaLocations = allLocations.filter(location => {
+        const stateMatch = isAllStatesView || location.state === selectedState;
+        const nameMatch = !searchTerm ||
+            (location.establishment_name && location.establishment_name.toLowerCase().includes(searchTerm)) ||
+            (location.dbas && location.dbas.toLowerCase().includes(searchTerm));
+        return stateMatch && nameMatch;
+    });
+
+    const filteredLabs = allLabLocations.filter(lab => {
+        const stateMatch = isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState;
+        const nameMatch = !searchTerm ||
+            (lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm));
+        return stateMatch && nameMatch;
+    });
+
+    const filteredInspections = allInspectionReports.filter(report => {
+        const stateMatch = isAllStatesView || report['State'] === selectedState;
+        const nameMatch = !searchTerm ||
+            (report['Account Name'] && report['Account Name'].toLowerCase().includes(searchTerm));
+        return stateMatch && nameMatch;
+    });
+
+    // --- 3. Decide whether to use clustering based on total markers ---
+    const totalMarkerCount = filteredUsdaLocations.length + filteredLabs.length + filteredInspections.length;
+    const CLUSTER_THRESHOLD = 1000;
+    const useClustering = totalMarkerCount >= CLUSTER_THRESHOLD;
+
     const markerBounds = []; // Used to calculate the bounds for auto-zoom.
 
-    // --- 2. Filter and plot USDA Slaughter/Processing Locations ---
-    allLocations.filter(location => isAllStatesView || location.state === selectedState).forEach(location => {
+    // --- 4. Plot markers, adding them to the correct layer type ---
+    filteredUsdaLocations.forEach(location => {
         if (!location.latitude || !location.longitude) return;
         if (!isAllStatesView) markerBounds.push([location.latitude, location.longitude]);
 
@@ -263,31 +306,27 @@ function applyFilters(shouldUpdateView = false) {
         const markerIcon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
         const marker = L.marker([location.latitude, location.longitude], { icon: markerIcon });
         
-        // Build the detailed popup content for this marker.
         const popupContent = buildUsdaPopup(location, isSlaughterhouse);
         marker.bindPopup(popupContent);
 
-        // Add the marker to the appropriate layer (clustered or single).
         if (isSlaughterhouse) {
-            isAllStatesView ? slaughterhouseClusterLayer.addLayer(marker) : slaughterhouseFeatureLayer.addLayer(marker);
+            useClustering ? slaughterhouseClusterLayer.addLayer(marker) : slaughterhouseFeatureLayer.addLayer(marker);
         } else {
-            isAllStatesView ? processingClusterLayer.addLayer(marker) : processingFeatureLayer.addLayer(marker);
+            useClustering ? processingClusterLayer.addLayer(marker) : processingFeatureLayer.addLayer(marker);
         }
     });
 
-    // --- 3. Filter and plot APHIS Lab Locations ---
-    allLabLocations.filter(lab => isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState).forEach(lab => {
+    filteredLabs.forEach(lab => {
         if (lab.latitude && lab.longitude) {
             if (!isAllStatesView) markerBounds.push([lab.latitude, lab.longitude]);
             const marker = L.marker([lab.latitude, lab.longitude], { icon: labIcon });
             const popupContent = buildLabPopup(lab);
             marker.bindPopup(popupContent);
-            isAllStatesView ? labClusterLayer.addLayer(marker) : labFeatureLayer.addLayer(marker);
+            useClustering ? labClusterLayer.addLayer(marker) : labFeatureLayer.addLayer(marker);
         }
     });
 
-    // --- 4. Filter and plot other APHIS Registrants (Breeders, Dealers, etc.) ---
-    allInspectionReports.filter(report => isAllStatesView || report['State'] === selectedState).forEach(report => {
+    filteredInspections.forEach(report => {
         const lat = report['Geocodio Latitude'];
         const lng = report['Geocodio Longitude'];
         if (lat && lng) {
@@ -295,12 +334,12 @@ function applyFilters(shouldUpdateView = false) {
             const marker = L.marker([parseFloat(lat), parseFloat(lng)], { icon: inspectionReportIcon });
             const popupContent = buildInspectionReportPopup(report);
             marker.bindPopup(popupContent);
-            isAllStatesView ? inspectionReportClusterLayer.addLayer(marker) : inspectionReportFeatureLayer.addLayer(marker);
+            useClustering ? inspectionReportClusterLayer.addLayer(marker) : inspectionReportFeatureLayer.addLayer(marker);
         }
     });
 
-    // --- 5. Add the correct layers back to the map based on filters ---
-    if (isAllStatesView) {
+    // --- 5. Add the correct layers back to the map based on clustering decision ---
+    if (useClustering) {
         if (slaughterhouseCheckbox.checked) map.addLayer(slaughterhouseClusterLayer);
         if (meatProcessingCheckbox.checked) map.addLayer(processingClusterLayer);
         if (testingLabsCheckbox.checked) map.addLayer(labClusterLayer);
@@ -417,6 +456,7 @@ meatProcessingCheckbox.addEventListener('change', () => applyFilters(false));
 testingLabsCheckbox.addEventListener('change', () => applyFilters(false));
 inspectionReportsCheckbox.addEventListener('change', () => applyFilters(false));
 stateSelector.addEventListener('change', () => applyFilters(true)); // Re-zoom map on state change
+nameSearchInput.addEventListener('input', () => applyFilters(false));
 map.on('moveend', updateUrlWithCurrentState); // Update URL when map is panned/zoomed
 
 /**
@@ -495,6 +535,7 @@ async function initializeApp() {
         const urlParams = new URLSearchParams(window.location.search);
         const stateParam = urlParams.get('state');
         const layersParam = urlParams.get('layers');
+        const searchParam = urlParams.get('search');
         const latParam = urlParams.get('lat');
         const lngParam = urlParams.get('lng');
         const zoomParam = urlParams.get('zoom');
@@ -509,6 +550,9 @@ async function initializeApp() {
         }
         if (stateParam) {
             stateSelector.value = stateParam;
+        }
+        if (searchParam) {
+            nameSearchInput.value = searchParam;
         }
         if (latParam && lngParam && zoomParam) {
             map.setView([parseFloat(latParam), parseFloat(lngParam)], parseInt(zoomParam));
