@@ -264,17 +264,39 @@ function applyFilters(shouldUpdateView = false) {
     const showDealers = dealersCheckbox.checked;
     const showExhibitors = exhibitorsCheckbox.checked;
     
-    const filteredUsdaLocations = allLocations.filter(loc => 
-        (isAllStatesView || loc.state === selectedState) &&
-        (!searchTerm || 
-         (loc.establishment_name && loc.establishment_name.toLowerCase().includes(searchTerm)) ||
-         (loc.dbas && loc.dbas.toLowerCase().includes(searchTerm)))
-    );
+    // Handle search term synonyms
+    const searchSynonyms = {
+        'cow': 'cattle',
+        'cows': 'cattle'
+    };
+    const effectiveSearchTerm = searchSynonyms[searchTerm] || searchTerm;
 
-    const filteredLabs = allLabLocations.filter(lab =>
-        (isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState) &&
-        (!searchTerm || (lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm)))
-    );
+    const filteredUsdaLocations = allLocations.filter(loc => {
+        const stateMatch = isAllStatesView || loc.state === selectedState;
+        if (!stateMatch) return false;
+
+        if (!searchTerm) return true; // If no search term, only filter by state
+
+        const nameMatch = (loc.establishment_name && loc.establishment_name.toLowerCase().includes(searchTerm)) ||
+                          (loc.dbas && loc.dbas.toLowerCase().includes(searchTerm));
+        
+        const animalMatch = (loc.animals_slaughtered && loc.animals_slaughtered.toLowerCase().includes(effectiveSearchTerm)) ||
+                            (loc.animals_processed && loc.animals_processed.toLowerCase().includes(effectiveSearchTerm));
+
+        return nameMatch || animalMatch;
+    });
+
+    const filteredLabs = allLabLocations.filter(lab => {
+        const stateMatch = isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState;
+        if (!stateMatch) return false;
+
+        if (!searchTerm) return true;
+
+        const nameMatch = lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm);
+        const animalMatch = lab['Animals Tested On'] && lab['Animals Tested On'].toLowerCase().includes(searchTerm);
+
+        return nameMatch || animalMatch;
+    });
 
     const filteredInspections = allInspectionReports.filter(report => {
         const stateMatch = isAllStatesView || report['State'] === selectedState;
@@ -438,7 +460,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
 
     return `
         <div class="info-popup">
-            <h3>${establishmentName}</h3>
+            <h3>${establishmentName}${buildCopyIcon(establishmentName, 'Copy Name')}</h3>
             <p1><strong>${locationTypeText}</strong></p1><br>
             <p1>(${location.latitude}, ${location.longitude})</p1>
             <hr>
@@ -461,7 +483,7 @@ function buildLabPopup(lab) {
 
     return `
         <div class="info-popup">
-            <h3>${name}</h3>
+            <h3>${name}${buildCopyIcon(name, 'Copy Name')}</h3>
             <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1><br>
             <p1>(${lab.latitude},${lab.longitude})</p1>
             <hr>
@@ -484,7 +506,7 @@ function buildInspectionReportPopup(report) {
 
     return `
         <div class="info-popup inspection-popup">
-            <h3>${name}</h3>
+            <h3>${name}${buildCopyIcon(name, 'Copy Name')}</h3>
             <p1><strong>${classText}</strong></p1><br>
             <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']})</p1>
             <hr>

@@ -119,19 +119,27 @@ hr {
 
 .info-popup h3 {
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-size: 1.1em
 }
 
-.info-popup p {
-    margin: 0px 0;
+.info-popup p, .info-popup p1 {
+    margin: 2px 0; /* Reduce the vertical margin between lines */
+    font-size: 0.95em; /* Make the main text smaller */
+    line-height: 1.2; /* Adjust line height for the smaller font */
 }
 
 
 .footer-container {
     text-align: center;
     padding: 2rem;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: #6c757d;
+}
+
+/* This targets the main container of the popup content */
+.leaflet-popup-content {
+    margin: 10px 15px; /* Reduce the overall padding inside the popup */
 }
 
 .footer-container p {
