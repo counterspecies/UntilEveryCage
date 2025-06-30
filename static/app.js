@@ -298,7 +298,7 @@ function applyFilters(shouldUpdateView = false) {
     if (testingLabsCheckbox.checked) totalMarkerCount += filteredLabs.length;
     totalMarkerCount += filteredInspections.length;
 
-    const CLUSTER_THRESHOLD = 1000;
+    const CLUSTER_THRESHOLD = 2100;
     const useClustering = totalMarkerCount >= CLUSTER_THRESHOLD;
 
     updateStats(slaughterhouses.length, processingPlants.length, filteredLabs.length, filteredInspections.length);
@@ -380,10 +380,10 @@ function plotMarker(data, type) {
 
 function updateStats(slaughterhouses, processing, labs, inspections) {
     let stats = [];
-    if (slaughterhouseCheckbox.checked) stats.push(`${slaughterhouses.toLocaleString()} Slaughterhouses`);
-    if (meatProcessingCheckbox.checked) stats.push(`${processing.toLocaleString()} Processing Plants`);
-    if (testingLabsCheckbox.checked) stats.push(`${labs.toLocaleString()} Animal Labs`);
-    if (breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) stats.push(`${inspections.toLocaleString()} Other Registrants`);
+    if (slaughterhouseCheckbox.checked && slaughterhouses > 0 ) stats.push(`${slaughterhouses.toLocaleString()} Slaughterhouses`);
+    if (meatProcessingCheckbox.checked && processing > 0) stats.push(`${processing.toLocaleString()} Processing Plants`);
+    if (testingLabsCheckbox.checked && labs > 0) stats.push(`${labs.toLocaleString()} Animal Labs`);
+    if ((breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) && inspections > 0) stats.push(`${inspections.toLocaleString()} Other Registrants`);
     
     statsContainer.innerHTML = stats.length > 0 ? `Showing: ${stats.join(', ')}` : 'No facilities match the current filters.';
 }
@@ -391,10 +391,24 @@ function updateStats(slaughterhouses, processing, labs, inspections) {
 // =============================================================================
 //  5. POPUP BUILDER HELPER FUNCTIONS
 // =============================================================================
-// ... (buildUsdaPopup, buildLabPopup, buildInspectionReportPopup functions are unchanged) ...
+
+// NEW: Helper function to generate the HTML for a copy icon
+function buildCopyIcon(text, title = "Copy") {
+    // Only return an icon if there is valid text to copy
+    if (!text || text === 'N/A') return '';
+    // The data-copy attribute holds the text we want to copy
+    return ` <span class="copy-icon" data-copy="${text}" title="${title}"></span>`;
+}
+
+// MODIFIED: All three popup functions now use the buildCopyIcon helper
 function buildUsdaPopup(location, isSlaughterhouse) {
-    const address = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
+    const establishmentName = location.establishment_name || 'Unknown Name';
     const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
+    const fullAddress = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
+    const establishmentId = location.establishment_id;
+    const grantDate = location.grant_date;
+    const phone = location.phone;
+    const dbas = location.dbas;
 
     let animals_processed_monthly_text = "N/A";
     if (location.processing_volume_category) {
@@ -422,19 +436,17 @@ function buildUsdaPopup(location, isSlaughterhouse) {
         slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p><p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>`;
     }
 
-    let otherNamesText = location.dbas ? `<p><strong>Doing Business As:</strong> ${location.dbas}</p>` : "";
-
     return `
         <div class="info-popup">
-            <h3>${location.establishment_name || 'Unknown Name'}</h3>
+            <h3>${establishmentName}</h3>
             <p1><strong>${locationTypeText}</strong></p1><br>
             <p1>(${location.latitude}, ${location.longitude})</p1>
             <hr>
-            <p><strong>Address:</strong> ${address}</p>
-            <p><strong>Establishment ID:</strong> ${location.establishment_id}</p>
-            <p><strong>Grant Date:</strong> ${location.grant_date || 'N/A'}</p>
-            <p><strong>Phone:</strong> ${location.phone || 'N/A'}</p>
-            ${otherNamesText}
+            <p><strong>Address:</strong> ${fullAddress}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
+            <p><strong>Establishment ID:</strong> ${establishmentId}${buildCopyIcon(establishmentId, 'Copy ID')}</p>
+            <p><strong>Grant Date:</strong> ${grantDate || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${phone || 'N/A'}${buildCopyIcon(phone, 'Copy Phone')}</p>
+            ${dbas ? `<p><strong>Doing Business As:</strong> ${dbas}${buildCopyIcon(dbas, 'Copy DBAs')}</p>` : ""}
             <hr>
             <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
             <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
@@ -443,14 +455,19 @@ function buildUsdaPopup(location, isSlaughterhouse) {
 }
 
 function buildLabPopup(lab) {
+    const name = lab['Account Name'] || 'Unknown Name';
+    const certNum = lab['Certificate Number'];
+    const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
+
     return `
         <div class="info-popup">
-            <h3>${lab['Account Name'] || 'Unknown Name'}</h3>
+            <h3>${name}</h3>
             <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1><br>
             <p1>(${lab.latitude},${lab.longitude})</p1>
             <hr>
-            <p><strong>Address:</strong> ${lab['Address Line 1']} ${lab['Address Line 2']} ${lab['City-State-Zip'] || 'N/A'}</p>
-            <p><strong>Certificate Number:</strong> ${lab['Certificate Number'] || 'N/A'}</p>
+            <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
+            <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
+            <hr>
             <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
         </div>`;
 }
@@ -461,14 +478,18 @@ function buildInspectionReportPopup(report) {
     else if (report['License Type'] === "Class B - Dealer") classText = "Dealer";
     else if (report['License Type'] === "Class C - Exhibitor") classText = "Exhibitor";
     
+    const name = report['Account Name'] || 'Unknown Name';
+    const certNum = report['Certificate Number'];
+    const fullAddress = `${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || ''}`.trim().replace(/^,|,$/g, '').trim();
+
     return `
         <div class="info-popup inspection-popup">
-            <h3>${report['Account Name'] || 'Unknown Name'}</h3>
+            <h3>${name}</h3>
             <p1><strong>${classText}</strong></p1><br>
             <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']})</p1>
             <hr>
-            <p><strong>Address:</strong> ${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || 'N/A'}</p>
-            <p><strong>Certificate Number:</strong> ${report['Certificate Number'] || 'N/A'}</p>
+            <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
+            <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
         </div>`;
 }
 
@@ -512,6 +533,38 @@ resetFiltersBtn.addEventListener('click', () => {
     dealersCheckbox.checked = true;
     exhibitorsCheckbox.checked = true;
     applyFilters(true); // true to reset the map view
+});
+
+// NEW: Event listener for all copy icons in popups
+map.on('popupopen', function (e) {
+    const popupNode = e.popup.getElement();
+    if (!popupNode) return;
+
+    const copyIcons = popupNode.querySelectorAll('.copy-icon');
+    copyIcons.forEach(icon => {
+        // Remove any old listeners to prevent duplication
+        const newIcon = icon.cloneNode(true);
+        icon.parentNode.replaceChild(newIcon, icon);
+
+        newIcon.addEventListener('click', function (event) {
+            event.stopPropagation(); // Stop click from propagating to the map
+            const textToCopy = this.getAttribute('data-copy');
+            if (textToCopy) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    this.classList.add('copied');
+                    const originalTitle = this.title;
+                    this.title = 'Copied!';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('copied');
+                        this.title = originalTitle;
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        });
+    });
 });
 
 // =============================================================================
