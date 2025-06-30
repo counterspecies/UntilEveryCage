@@ -480,6 +480,7 @@ function buildLabPopup(lab) {
     const name = lab['Account Name'] || 'Unknown Name';
     const certNum = lab['Certificate Number'];
     const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
+    const arloUrl = certNum ? `https://arlo.riseforanimals.org/browse?query=${encodeURIComponent(certNum)}&order=relevance` : null;
 
     return `
         <div class="info-popup">
@@ -489,6 +490,7 @@ function buildLabPopup(lab) {
             <hr>
             <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
             <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
+            ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Details on ARLO &raquo;</strong></a></p>` : ''}
             <hr>
             <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
         </div>`;
