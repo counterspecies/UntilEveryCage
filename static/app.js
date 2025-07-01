@@ -14,14 +14,6 @@
  * * Main Dependencies: Leaflet.js, Leaflet.markercluster
  */
 
-fetch('footer.html')
-    .then((response) => {
-        return response.text()
-    })
-    .then(text => {
-        document.querySelector("#footer-stub").innerHTML = text; 
-    });
-
 // =============================================================================
 //  1. MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
@@ -431,6 +423,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
     const grantDate = location.grant_date;
     const phone = location.phone;
     const dbas = location.dbas;
+    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
 
     let animals_processed_monthly_text = "N/A";
     if (location.processing_volume_category) {
@@ -473,6 +466,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
             <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
             ${slaughterText}
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
 
@@ -481,6 +475,7 @@ function buildLabPopup(lab) {
     const certNum = lab['Certificate Number'];
     const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
     const arloUrl = certNum ? `https://arlo.riseforanimals.org/browse?query=${encodeURIComponent(certNum)}&order=relevance` : null;
+    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lab.latitude},${lab.longitude}`;
 
     return `
         <div class="info-popup">
@@ -493,6 +488,7 @@ function buildLabPopup(lab) {
             ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Details on ARLO &raquo;</strong></a></p>` : ''}
             <hr>
             <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
 
@@ -505,6 +501,7 @@ function buildInspectionReportPopup(report) {
     const name = report['Account Name'] || 'Unknown Name';
     const certNum = report['Certificate Number'];
     const fullAddress = `${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || ''}`.trim().replace(/^,|,$/g, '').trim();
+    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report['Geocodio Latitude']},${report['Geocodio Longitude']}`;
 
     return `
         <div class="info-popup inspection-popup">
@@ -514,6 +511,7 @@ function buildInspectionReportPopup(report) {
             <hr>
             <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
             <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
 
