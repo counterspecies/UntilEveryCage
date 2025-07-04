@@ -15,7 +15,7 @@
  */
 
 // =============================================================================
-//  1. MAP INITIALIZATION & CONFIGURATION
+//  MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
 
 
@@ -52,7 +52,7 @@ L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
 
 
 // =============================================================================
-//  2. CUSTOM LEAFLET CONTROLS
+//  CUSTOM LEAFLET CONTROLS
 // =============================================================================
 
 /**
@@ -147,7 +147,7 @@ map.on('locationerror', e => {
 
 
 // =============================================================================
-//  3. ICONS AND LAYER GROUPS
+//  ICONS AND LAYER GROUPS
 // =============================================================================
 
 // Defines the visual icons used for each type of map marker.
@@ -203,7 +203,7 @@ const statsContainer = document.getElementById('stats-container');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
 
 // =============================================================================
-//  4. CORE APPLICATION LOGIC
+//  CORE APPLICATION LOGIC
 // =============================================================================
 
 function updateUrlWithCurrentState() {
@@ -403,18 +403,10 @@ function updateStats(slaughterhouses, processing, labs, inspections) {
 }
 
 // =============================================================================
-//  5. POPUP BUILDER HELPER FUNCTIONS
+//  POPUP BUILDER HELPER FUNCTIONS
 // =============================================================================
 
-// NEW: Helper function to generate the HTML for a copy icon
-function buildCopyIcon(text, title = "Copy") {
-    // Only return an icon if there is valid text to copy
-    if (!text || text === 'N/A') return '';
-    // The data-copy attribute holds the text we want to copy
-    return ` <span class="copy-icon" data-copy="${text}" title="${title}"></span>`;
-}
-
-// MODIFIED: All three popup functions now use the buildCopyIcon helper
+// REPLACE this function in app.js
 function buildUsdaPopup(location, isSlaughterhouse) {
     const establishmentName = location.establishment_name || 'Unknown Name';
     const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
@@ -425,50 +417,65 @@ function buildUsdaPopup(location, isSlaughterhouse) {
     const dbas = location.dbas;
     const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
 
+    // Helper function to create the volume bars
+    const createVolumeBars = (category) => {
+        if (!category || category === "0.0") return '';
+        const level = parseInt(category.charAt(0));
+        let bars = '';
+        for (let i = 1; i <= 5; i++) {
+            bars += `<div class="volume-indicator-bar ${i <= level ? 'filled' : ''}"></div>`;
+        }
+        return `<div class="volume-indicator">${bars}</div>`;
+    };
+    
     let animals_processed_monthly_text = "N/A";
+    let processingVolumeHtml = createVolumeBars(location.processing_volume_category);
     if (location.processing_volume_category) {
         switch (location.processing_volume_category) {
-            case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds of products processed per month."; break;
-            case "2.0": animals_processed_monthly_text = "10,000 to 100,000 pounds of products processed per month."; break;
-            case "3.0": animals_processed_monthly_text = "100,000 to 1,000,000 pounds of products processed per month."; break;
-            case "4.0": animals_processed_monthly_text = "1,000,000 to 10,000,000 pounds of products processed per month."; break;
-            case "5.0": animals_processed_monthly_text = "Over 10,000,000 pounds of products processed per month."; break;
+            case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds/month."; break;
+            case "2.0": animals_processed_monthly_text = "10k - 100k pounds/month."; break;
+            case "3.0": animals_processed_monthly_text = "100k - 1M pounds/month."; break;
+            case "4.0": animals_processed_monthly_text = "1M - 10M pounds/month."; break;
+            case "5.0": animals_processed_monthly_text = "Over 10M pounds/month."; break;
         }
     }
 
     let slaughterText = "";
     if (isSlaughterhouse) {
         let animals_slaughtered_yearly_text = "N/A";
+        let slaughterVolumeHtml = createVolumeBars(location.slaughter_volume_category);
         if (location.slaughter_volume_category) {
             switch (location.slaughter_volume_category) {
-                case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals killed per year."; break;
-                case "2.0": animals_slaughtered_yearly_text = "1,000 to 10,000 animals killed per year."; break;
-                case "3.0": animals_slaughtered_yearly_text = "10,000 to 100,000 animals killed per year."; break;
-                case "4.0": animals_slaughtered_yearly_text = "100,000 to 10,000,000 animals killed per year."; break;
-                case "5.0": animals_slaughtered_yearly_text = "Over 10,000,000 animals killed per year."; break;
+                case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals/year."; break;
+                case "2.0": animals_slaughtered_yearly_text = "1k - 10k animals/year."; break;
+                case "3.0": animals_slaughtered_yearly_text = "10k - 100k animals/year."; break;
+                case "4.0": animals_slaughtered_yearly_text = "100k - 10M animals/year."; break;
+                case "5.0": animals_slaughtered_yearly_text = "Over 10M animals/year."; break;
             }
         }
-        slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p><p><strong>Yearly Slaughter Count:</strong> ${animals_slaughtered_yearly_text}</p>`;
+        slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
+                         <p><strong>Yearly Slaughter Volume:</strong> ${slaughterVolumeHtml} <span class="volume-label">${animals_slaughtered_yearly_text}</span></p>`;
     }
 
     return `
         <div class="info-popup">
-            <h3>${establishmentName}${buildCopyIcon(establishmentName, 'Copy Name')}</h3>
+            <h3>${establishmentName}</h3>
             <p1><strong>${locationTypeText}</strong></p1><br>
             <p1>(${location.latitude}, ${location.longitude})</p1>
             <hr>
-            <p><strong>Address:</strong> ${fullAddress}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
-            <p><strong>Establishment ID:</strong> ${establishmentId}${buildCopyIcon(establishmentId, 'Copy ID')}</p>
+            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress}</span></p>
+            <p><strong>Establishment ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
             <p><strong>Grant Date:</strong> ${grantDate || 'N/A'}</p>
-            <p><strong>Phone:</strong> ${phone || 'N/A'}${buildCopyIcon(phone, 'Copy Phone')}</p>
-            ${dbas ? `<p><strong>Doing Business As:</strong> ${dbas}${buildCopyIcon(dbas, 'Copy DBAs')}</p>` : ""}
+            <p><strong>Phone:</strong> ${phone ? `<span class="copyable-text" data-copy="${phone}">${phone}</span>` : 'N/A'}</p>
+            ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
             <hr>
             <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
-            <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
+            <p><strong>Monthly Product Volume:</strong> ${processingVolumeHtml} <span class="volume-label">${animals_processed_monthly_text}</span></p>
             ${slaughterText}
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
+
 
 function buildLabPopup(lab) {
     const name = lab['Account Name'] || 'Unknown Name';
@@ -479,13 +486,13 @@ function buildLabPopup(lab) {
 
     return `
         <div class="info-popup">
-            <h3>${name}${buildCopyIcon(name, 'Copy Name')}</h3>
+            <h3>${name}</h3>
             <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1><br>
             <p1>(${lab.latitude},${lab.longitude})</p1>
             <hr>
-            <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
-            <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
-            ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Details on ARLO &raquo;</strong></a></p>` : ''}
+            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
+            <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
+            ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Details on ARLO »</strong></a></p>` : ''}
             <hr>
             <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
@@ -505,18 +512,17 @@ function buildInspectionReportPopup(report) {
 
     return `
         <div class="info-popup inspection-popup">
-            <h3>${name}${buildCopyIcon(name, 'Copy Name')}</h3>
+            <h3>${name}</h3>
             <p1><strong>${classText}</strong></p1><br>
             <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']})</p1>
             <hr>
-            <p><strong>Address:</strong> ${fullAddress || 'N/A'}${buildCopyIcon(fullAddress, 'Copy Address')}</p>
-            <p><strong>Certificate Number:</strong> ${certNum || 'N/A'}${buildCopyIcon(certNum, 'Copy Certificate Number')}</p>
+            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
+            <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
-
 // =============================================================================
-//  6. EVENT LISTENERS & UTILITY FUNCTIONS
+//  EVENT LISTENERS & UTILITY FUNCTIONS
 // =============================================================================
 
 [slaughterhouseCheckbox, meatProcessingCheckbox, testingLabsCheckbox, breedersCheckbox, dealersCheckbox, exhibitorsCheckbox]
@@ -557,30 +563,43 @@ resetFiltersBtn.addEventListener('click', () => {
     applyFilters(true); // true to reset the map view
 });
 
-// NEW: Event listener for all copy icons in popups
+
 map.on('popupopen', function (e) {
     const popupNode = e.popup.getElement();
     if (!popupNode) return;
 
-    const copyIcons = popupNode.querySelectorAll('.copy-icon');
-    copyIcons.forEach(icon => {
-        // Remove any old listeners to prevent duplication
-        const newIcon = icon.cloneNode(true);
-        icon.parentNode.replaceChild(newIcon, icon);
+    // Use a unique ID to track if a message is already showing
+    const popupId = `popup-${e.popup._leaflet_id}`;
 
-        newIcon.addEventListener('click', function (event) {
+    const copyableElements = popupNode.querySelectorAll('.copyable-text');
+    copyableElements.forEach(el => {
+        el.addEventListener('click', function (event) {
             event.stopPropagation(); // Stop click from propagating to the map
             const textToCopy = this.getAttribute('data-copy');
-            if (textToCopy) {
+            
+            // Prevent multiple "Copied!" messages from appearing
+            const existingFeedback = popupNode.querySelector('.copy-feedback-message');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
+
+            if (textToCopy && textToCopy !== 'N/A') {
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    this.classList.add('copied');
-                    const originalTitle = this.title;
-                    this.title = 'Copied!';
+                    const feedbackEl = document.createElement('span');
+                    feedbackEl.className = 'copy-feedback-message';
+                    feedbackEl.textContent = 'Copied!';
+                    
+                    // Position the tooltip based on the clicked element
+                    feedbackEl.style.left = `${this.offsetLeft}px`;
+                    feedbackEl.style.top = `${this.offsetTop}px`;
+
+                    // Add it to the DOM and then remove it after a delay
+                    this.parentNode.appendChild(feedbackEl);
                     
                     setTimeout(() => {
-                        this.classList.remove('copied');
-                        this.title = originalTitle;
-                    }, 1500);
+                        feedbackEl.remove();
+                    }, 1200); // Message disappears after 1.2 seconds
+
                 }).catch(err => {
                     console.error('Failed to copy: ', err);
                 });
@@ -588,9 +607,8 @@ map.on('popupopen', function (e) {
         });
     });
 });
-
 // =============================================================================
-//  7. APPLICATION INITIALIZATION
+//  APPLICATION INITIALIZATION
 // =============================================================================
 
 async function initializeApp() {
