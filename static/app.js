@@ -454,7 +454,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             }
         }
         slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
-                         <p><strong>Yearly Slaughter Volume:</strong> ${slaughterVolumeHtml} <span class="volume-label">${animals_slaughtered_yearly_text}</span></p>`;
+                         <p><strong>Slaughter Volume:</strong> ${slaughterVolumeHtml} <span class="volume-label">${animals_slaughtered_yearly_text}</span></p>`;
     }
 
     return `
@@ -470,7 +470,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
             <hr>
             <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
-            <p><strong>Monthly Product Volume:</strong> ${processingVolumeHtml} <span class="volume-label">${animals_processed_monthly_text}</span></p>
+            <p><strong>Product Volume:</strong> ${processingVolumeHtml} <span class="volume-label">${animals_processed_monthly_text}</span></p>
             ${slaughterText}
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
@@ -611,8 +611,11 @@ map.on('popupopen', function (e) {
 //  APPLICATION INITIALIZATION
 // =============================================================================
 
+// REPLACE the existing initializeApp function with this one
 async function initializeApp() {
     const loader = document.getElementById('loader-overlay'); 
+    let urlParams; // Declare urlParams here, in the higher scope
+
     try {
         if(loader) loader.style.display = 'flex';
 
@@ -645,7 +648,7 @@ async function initializeApp() {
             stateSelector.appendChild(option);
         });
 
-        const urlParams = new URLSearchParams(window.location.search);
+        urlParams = new URLSearchParams(window.location.search); // Assign the value here
         const layersParam = urlParams.get('layers');
         if (layersParam) {
             const visibleLayers = new Set(layersParam.split(','));
@@ -674,8 +677,9 @@ async function initializeApp() {
     } finally {
         if(loader) loader.style.display = 'none';
         isInitialDataLoading = false;
-        if(!urlParams.has('lat')) updateUrlWithCurrentState();
+        if(urlParams && !urlParams.has('lat')) { // Check if urlParams exists before using it
+            updateUrlWithCurrentState();
+        }
     }
 }
-
 initializeApp();
