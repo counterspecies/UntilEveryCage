@@ -166,8 +166,19 @@ const labIcon = L.icon({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
 });
-const inspectionReportIcon = L.icon({
+// Separate icons for different inspection report types
+const breederIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+});
+const dealerIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+});
+const exhibitorIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
 });
@@ -374,7 +385,20 @@ function plotMarker(data, type) {
     } else if (type === 'inspection') {
         lat = parseFloat(data['Geocodio Latitude']);
         lng = parseFloat(data['Geocodio Longitude']);
-        icon = inspectionReportIcon;
+        
+        // Choose icon based on license type
+        const licenseType = data['License Type'];
+        if (licenseType === 'Class A - Breeder') {
+            icon = breederIcon;
+        } else if (licenseType === 'Class B - Dealer') {
+            icon = dealerIcon;
+        } else if (licenseType === 'Class C - Exhibitor') {
+            icon = exhibitorIcon;
+        } else {
+            // Fallback to blue if license type is unknown
+            icon = breederIcon;
+        }
+        
         popupContent = buildInspectionReportPopup(data);
     } else { // USDA Location
         lat = data.latitude;
