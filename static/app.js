@@ -168,7 +168,7 @@ const labIcon = L.icon({
 });
 // Separate icons for different inspection report types
 const breederIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
 });
@@ -178,7 +178,7 @@ const dealerIcon = L.icon({
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
 });
 const exhibitorIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
 });
@@ -516,18 +516,19 @@ function buildLabPopup(lab) {
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
-            ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Details on ARLO »</strong></a></p>` : ''}
+            
             <hr>
             <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
+            ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Full Reports on ARLO</strong></a></p>` : ''}
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
 
 function buildInspectionReportPopup(report) {
     let classText = "N/A";
-    if (report['License Type'] === "Class A - Breeder") classText = "Breeder";
-    else if (report['License Type'] === "Class B - Dealer") classText = "Dealer";
-    else if (report['License Type'] === "Class C - Exhibitor") classText = "Exhibitor";
+    if (report['License Type'] === "Class A - Breeder") classText = "Animal Breeder";
+    else if (report['License Type'] === "Class B - Dealer") classText = "Animal Dealer";
+    else if (report['License Type'] === "Class C - Exhibitor") classText = "Exhibitor / Zoo";
     
     const name = report['Account Name'] || 'Unknown Name';
     const certNum = report['Certificate Number'];
