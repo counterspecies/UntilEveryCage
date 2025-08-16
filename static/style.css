@@ -328,8 +328,8 @@ hr {
 /* 1. Makes the Fullscreen button 30% bigger */
 .leaflet-control-custom-fullscreen a {
     /* Set an explicit size for the button */
-    height: 75px; /* 30% bigger: 58px → 75px */
-    padding: 0 31px; /* 30% bigger: 24px → 31px */
+    height: 58px; /* 30% bigger: 58px → 75px */
+    padding: 0 24px; /* 30% bigger: 24px → 31px */
 
     /* Use Flexbox for perfect centering */
     display: flex;
@@ -340,17 +340,17 @@ hr {
     background-color: white;
     color: #333;
     text-decoration: none;
-    font: bold 18px 'Helvetica Neue', Arial, Helvetica, sans-serif; /* 30% bigger: 14px → 18px */
+    font: bold 14px 'Helvetica Neue', Arial, Helvetica, sans-serif; /* 30% bigger: 14px → 18px */
 }
 
 /* 2. Makes the Layers (Street/Satellite) control 30% bigger */
 .leaflet-control-layers {
-    padding: 7px; /* 30% bigger: 5px → 7px */
+    padding: 5px; /* 30% bigger: 5px → 7px */
     border-radius: 8px; /* Rounds the corners */
 }
 
 .leaflet-control-layers-base label {
-    font-size: 20px; /* 30% bigger: 15px → 20px */
+    font-size: 15px; /* 30% bigger: 15px → 20px */
     line-height: 1.5; /* Adds more space between the two lines */
 }
 
