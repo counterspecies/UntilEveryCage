@@ -325,11 +325,11 @@ hr {
 
 /* --- UI Control Size Adjustments --- */
 
-/* 1. Makes the Fullscreen button slightly bigger */
+/* 1. Makes the Fullscreen button 30% bigger */
 .leaflet-control-custom-fullscreen a {
     /* Set an explicit size for the button */
-    height: 58px;
-    padding: 0 24px;
+    height: 75px; /* 30% bigger: 58px → 75px */
+    padding: 0 31px; /* 30% bigger: 24px → 31px */
 
     /* Use Flexbox for perfect centering */
     display: flex;
@@ -340,17 +340,17 @@ hr {
     background-color: white;
     color: #333;
     text-decoration: none;
-    font: bold 14px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    font: bold 18px 'Helvetica Neue', Arial, Helvetica, sans-serif; /* 30% bigger: 14px → 18px */
 }
 
-/* 2. Makes the Layers (Street/Satellite) control bigger */
+/* 2. Makes the Layers (Street/Satellite) control 30% bigger */
 .leaflet-control-layers {
-    padding: 5px; /* Adds more space inside the box */
+    padding: 7px; /* 30% bigger: 5px → 7px */
     border-radius: 8px; /* Rounds the corners */
 }
 
 .leaflet-control-layers-base label {
-    font-size: 15px; /* Increases the text size */
+    font-size: 20px; /* 30% bigger: 15px → 20px */
     line-height: 1.5; /* Adds more space between the two lines */
 }
 
@@ -409,14 +409,22 @@ hr {
     color: #555;
 }
 
-/* Add this new rule for the Find Me button */
+/* Find Me button - 30% bigger */
 .leaflet-control-find-me a {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>');
-    background-size: 18px 18px;
+    background-size: 23px 23px; /* 30% bigger: 18px → 23px */
     background-repeat: no-repeat;
     background-position: center;
-    width: 30px;
-    height: 30px;
+    width: 39px; /* 30% bigger: 30px → 39px */
+    height: 39px; /* 30% bigger: 30px → 39px */
+}
+
+/* Zoom controls - 30% bigger */
+.leaflet-control-zoom a {
+    width: 39px; /* 30% bigger than default ~30px */
+    height: 39px; /* 30% bigger than default ~30px */
+    font-size: 23px; /* 30% bigger than default ~18px */
+    line-height: 39px; /* Match height for centering */
 }
 
 .filter-grid {
@@ -566,28 +574,7 @@ hr {
     padding: 0 2rem;
 }
 
-/* --- Volume Indicator Styles --- */
-.volume-indicator {
-    display: inline-flex; /* CHANGED from flex */
-    gap: 3px;
-    margin-top: 4px;
-    align-items: center;
-    vertical-align: middle; /* ADDED for better text alignment */
-}
-.volume-indicator-bar {
-    height: 10px;
-    width: 15px; /* Wider bars */
-    background-color: #e0e0e0; /* Light grey for empty bars */
-    border-radius: 2px;
-}
-.volume-indicator-bar.filled {
-    background-color: #d9534f; /* A meaningful red color */
-}
-.volume-label {
-    margin-left: 8px;
-    font-size: 0.9em;
-    color: #555;
-}
+
 
 /* --- Filter Overlay Collapsed State & Responsive --- */
 
