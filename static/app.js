@@ -453,7 +453,7 @@ function updateStats(slaughterhouses, processing, labs, inspections) {
     if (slaughterhouseCheckbox.checked && slaughterhouses > 0 ) stats.push(`${slaughterhouses.toLocaleString()} Slaughterhouses`);
     if (meatProcessingCheckbox.checked && processing > 0) stats.push(`${processing.toLocaleString()} Processing Plants`);
     if (testingLabsCheckbox.checked && labs > 0) stats.push(`${labs.toLocaleString()} Animal Labs`);
-    if ((breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) && inspections > 0) stats.push(`${inspections.toLocaleString()} Other Registrants`);
+    if ((breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) && inspections > 0) stats.push(`${inspections.toLocaleString()} Other Locations`);
     
     statsContainer.innerHTML = stats.length > 0 ? `Showing: ${stats.join(', ')}` : 'No facilities match the current filters.';
 }
@@ -520,7 +520,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <p1>(${location.latitude}, ${location.longitude})</p1>
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress}</span></p>
-            <p><strong>Establishment ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
+            <p><strong>USDA Establishment ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
             <p><strong>Phone:</strong> ${phone ? `<span class="copyable-text" data-copy="${phone}">${phone}</span>` : 'N/A'}</p>
             ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
             <hr>
