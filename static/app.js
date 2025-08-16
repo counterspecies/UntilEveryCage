@@ -32,7 +32,7 @@ const map = L.map('map', {
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
 
 // Add zoom control to bottom-left
-L.control.zoom({ position: 'bottomleft' }).addTo(map);
+//L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 // Define the base map tile layers (the map imagery itself).
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -62,7 +62,7 @@ const baseMaps = {
     "Street View": streetMap,
     "Satellite View": satelliteMap
 };
-L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomright' }).addTo(map);
+L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomleft' }).addTo(map);
 
 
 // =============================================================================
@@ -74,7 +74,7 @@ L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomright' }).
  */
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
-        position: 'bottomleft',
+        position: 'bottomright',
         enterText: 'Fullscreen',
         exitText: 'Exit'
     },
@@ -151,7 +151,7 @@ setTimeout(moveControlsToBottom, 100);
  */
 L.Control.FindMe = L.Control.extend({
     options: {
-        position: 'bottomleft'
+        position: 'bottomright'
     },
     onAdd: function(map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-find-me');
