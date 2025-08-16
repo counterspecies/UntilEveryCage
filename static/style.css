@@ -25,8 +25,11 @@ a:hover {
 .manifesto-container,
 .kill-counter-container,
 #filter-container {
-    max-width: 1120px; 
-    margin: 2rem auto;
+    max-width: 99vw;
+    margin-left: 0.5vw;
+    margin-right: 0.5vw;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
     padding: 0.75rem;
     background-color: #ffffff;
     border: 1px solid #ddd;
@@ -154,9 +157,9 @@ hr {
     flex-wrap: wrap;       /* Allows items to stack on small screens */
     justify-content: center;
     gap: 2rem;             /* Space between the two containers */
-    padding: 2rem;         /* Space around the outside */
-    max-width: 1710px;    
-    margin: 0 auto;        /* Center the wrapper on the page */
+    padding: 1rem;         /* Reduced space around the outside */
+    max-width: 99vw;
+    margin: 0.5rem auto;   /* Reduced margin */
 }
 
 /* This targets both containers inside the wrapper */
@@ -167,12 +170,12 @@ hr {
 
 /* Override the general max-width for the manifesto to give it more room */
 .manifesto-container {
-    max-width: 863px; 
+    max-width: 900px; 
 }
 
 /* Override the general max-width for the kill-counter */
 .kill-counter-container {
-    max-width: 633px;
+    max-width: 420px;
 }
 
 /* --- Fluid Typography for Proportional Scaling --- */
@@ -188,7 +191,7 @@ hr {
 .kill-counter-list {
     /* We keep the monospaced font from your original style */
     font-family: 'Menlo', 'Consolas', 'Roboto Mono', monospace;
-    font-size: clamp(0.9rem, 0.5vw + 0.75rem, 1.1rem);
+    font-size: clamp(1.5rem, 0.5vw + 0.75rem, 1.1rem);
     line-height: 1.9;
 }
 
