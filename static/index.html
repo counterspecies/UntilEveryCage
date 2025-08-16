@@ -47,6 +47,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="map-filter-styles.css" />
 </head>
 
 <body>
@@ -60,59 +61,60 @@
                 <li><a href="index.html" class="nav-link active">Map</a></li>
                 <li><a href="about.html" class="nav-link">About</a></li>
                 <li><a href="howtouse.html" class="nav-link">How To Use</a></li>
-                <li><a href="contact.html" class="nav-link">Contact</a></li>
             </ul>
         </nav>
     </div>
 </header>
-<div id="map"></div>
-<div id="filter-container">
-    <label for="name-search-input">Search: </label>
-    <input type="text" id="name-search-input" placeholder="Search by term...">
-
-    <label for="state-selector">State:</label>
-    <select id="state-selector">
-        <option value="all">All States</option>
-    </select>
-
-    
-
-    <button id="share-view-btn">Share View</button>
-
-    <button id="reset-filters-btn">Reset filters</button>
-    <hr>
-    
-    <div class="filter-grid">
-        <div class="checkbox-container">
-            <input type="checkbox" id="slaughterhousesCheckbox" checked> 
-            <label for="slaughterhousesCheckbox">Show Slaughterhouses</label>
+<div id="map">
+    <!-- Simple filter panel -->
+    <div id="map-filters">
+        <div class="filter-header">
+            <span>🔍 Filters</span>
+            <button id="filter-toggle-btn" type="button">▼</button>
         </div>
+        <div id="filter-panel" class="filter-content">
+            <div class="search-section">
+                <input type="text" id="name-search-input" placeholder="Search facilities...">
+                <select id="state-selector">
+                    <option value="all">All States</option>
+                </select>
+            </div>
+            
+            <div class="button-section">
+                <button id="share-view-btn">Share View</button>
+                <button id="reset-filters-btn">Reset</button>
+            </div>
+            
+            <div class="types-section">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="slaughterhousesCheckbox" checked> 
+                    <label for="slaughterhousesCheckbox">🔴 Slaughterhouses</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
+                    <label for="meatProcessingPlantsCheckbox">⚪️ Processing</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="testingLabsCheckbox" checked>
+                    <label for="testingLabsCheckbox">🟣 Labs</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="breedersCheckbox" checked>
+                    <label for="breedersCheckbox">🟡 Breeders</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="dealersCheckbox" checked>
+                    <label for="dealersCheckbox">🟠 Dealers</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="exhibitorsCheckbox" checked>
+                    <label for="exhibitorsCheckbox">🟢 Exhibitors</label>
+                </div>
+            </div>
 
-        <div class="checkbox-container">
-            <input type="checkbox" id="meatProcessingPlantsCheckbox" checked>
-            <label for="meatProcessingPlantsCheckbox">Show Processing-Only Facilities</label>
-        </div>
-
-        <div class="checkbox-container">
-            <input type="checkbox" id="testingLabsCheckbox" checked>
-            <label for="testingLabsCheckbox">Show Animal Testing Labs</label>
-        </div>
-
-        <div class="checkbox-container">
-            <input type="checkbox" id="breedersCheckbox" checked>
-            <label for="breedersCheckbox">Show Animal Breeders</label>
-        </div>
-        <div class="checkbox-container">
-            <input type="checkbox" id="dealersCheckbox" checked>
-            <label for="dealersCheckbox">Show Animal Dealers</label>
-        </div>
-        <div class="checkbox-container">
-            <input type="checkbox" id="exhibitorsCheckbox" checked>
-            <label for="exhibitorsCheckbox">Show Exhibitors / Zoos</label>
+            <div id="stats-container"></div>
         </div>
     </div>
-
-    <div id="stats-container"></div> 
 </div>
 
 

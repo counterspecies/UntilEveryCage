@@ -1,0 +1,130 @@
+/* Simple Map Filter Overlay Styles */
+#map-filters {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 280px;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#filter-toggle-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.filter-content {
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.search-section {
+    margin-bottom: 15px;
+}
+
+.search-section input,
+.search-section select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.button-section {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.button-section button {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.button-section button:hover {
+    background: #f0f0f0;
+}
+
+#share-view-btn {
+    background: #007bff !important;
+    color: white !important;
+}
+
+#share-view-btn:hover {
+    background: #0056b3 !important;
+}
+
+.types-section {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.checkbox-item input {
+    margin-right: 8px;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    user-select: none;
+}
+
+#stats-container {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Collapsed state */
+#map-filters.collapsed .filter-content {
+    display: none;
+}
+
+/* All map controls are now positioned at the bottom to avoid any overlap */
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    #map-filters {
+        width: calc(100vw - 20px);
+        left: 10px;
+        right: 10px;
+    }
+    
+    /* Controls are at bottom, no mobile-specific positioning needed */
+}

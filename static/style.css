@@ -89,14 +89,16 @@ hr {
     justify-content: center;
 }
 
-#filter-container label {
-    font-weight: 500;
-    color: #495057;
-}
-
-#filter-container select,
-#filter-container input {
-    margin-left: 0.5rem;
+/* Filter overlay input styling */
+#filter-overlay select,
+#filter-overlay input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: white;
+    box-sizing: border-box;
 }
 
 
@@ -428,9 +430,20 @@ hr {
 }
 
 .checkbox-container {
-    /* Optional: This ensures the checkbox and label are aligned nicely */
     display: flex;
     align-items: center;
+    padding: 4px 0;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.1);
+}
+
+.checkbox-container label {
+    font-size: 0.9em;
+    cursor: pointer;
+    user-select: none;
 }
 
 #share-view-btn,
@@ -575,3 +588,34 @@ hr {
     font-size: 0.9em;
     color: #555;
 }
+
+/* --- Filter Overlay Collapsed State & Responsive --- */
+
+/* Collapsed state */
+#filter-overlay.collapsed #filter-content {
+    display: none;
+}
+
+#filter-overlay.collapsed {
+    width: auto;
+}
+
+/* Responsive overlay positioning */
+@media (max-width: 768px) {
+    #filter-overlay {
+        top: 5px;
+        left: 5px;
+        width: calc(100% - 10px);
+        max-width: calc(100% - 10px);
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons button {
+        margin-bottom: 4px;
+    }
+}
+
+/* Map controls moved to bottom, no positioning conflicts */

@@ -27,18 +27,32 @@ const worldBounds = L.latLngBounds(southWest, northEast);
 // Create the main Leaflet map instance, centered on the continental US.
 const map = L.map('map', {
     maxBounds: worldBounds,
-    maxBoundsViscosity: 0.1 // Makes the map "bounce back" at the edges.
+    maxBoundsViscosity: 0.1, // Makes the map "bounce back" at the edges.
+    zoomControl: false // Disable default zoom control, we'll add it to bottom
 }).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
+
+// Add zoom control to bottom-left
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
 // Define the base map tile layers (the map imagery itself).
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
 });
-const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+// Create satellite base layer
+const satelliteBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
     attribution: 'Tiles &copy; Esri'
 });
+
+// Create transportation overlay (roads, highways, major boundaries only - no POIs)
+const transportationOverlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: ''
+});
+
+// Combine satellite base with clean transportation overlay
+const satelliteMap = L.layerGroup([satelliteBase, transportationOverlay]);
 
 // Add the default street map layer to the map on initial load.
 streetMap.addTo(map);
@@ -48,7 +62,7 @@ const baseMaps = {
     "Street View": streetMap,
     "Satellite View": satelliteMap
 };
-L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
+L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomright' }).addTo(map);
 
 
 // =============================================================================
@@ -60,7 +74,7 @@ L.control.layers(baseMaps, null, { collapsed: false }).addTo(map);
  */
 L.Control.CustomFullscreen = L.Control.extend({
     options: {
-        position: 'topleft',
+        position: 'bottomleft',
         enterText: 'Fullscreen',
         exitText: 'Exit'
     },
@@ -114,12 +128,30 @@ L.Control.CustomFullscreen = L.Control.extend({
 });
 map.addControl(new L.Control.CustomFullscreen());
 
+// Move all map controls to bottom to avoid overlap with filter panel
+function moveControlsToBottom() {
+    const leftControls = document.querySelector('.leaflet-top.leaflet-left');
+    const rightControls = document.querySelector('.leaflet-top.leaflet-right');
+    
+    if (leftControls) {
+        leftControls.classList.remove('leaflet-top');
+        leftControls.classList.add('leaflet-bottom');
+    }
+    if (rightControls) {
+        rightControls.classList.remove('leaflet-top');
+        rightControls.classList.add('leaflet-bottom');
+    }
+}
+
+// Call after a short delay to ensure controls are rendered
+setTimeout(moveControlsToBottom, 100);
+
 /**
  * Custom Find Me Control
  */
 L.Control.FindMe = L.Control.extend({
     options: {
-        position: 'topleft'
+        position: 'bottomleft'
     },
     onAdd: function(map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-find-me');
@@ -586,6 +618,22 @@ resetFiltersBtn.addEventListener('click', () => {
     dealersCheckbox.checked = true;
     exhibitorsCheckbox.checked = true;
     applyFilters(true); // true to reset the map view
+});
+
+// Filter panel toggle functionality
+const filterHeader = document.querySelector('.filter-header');
+const mapFilters = document.getElementById('map-filters');
+const toggleBtn = document.getElementById('filter-toggle-btn');
+
+filterHeader.addEventListener('click', () => {
+    mapFilters.classList.toggle('collapsed');
+    
+    // Update arrow direction
+    if (mapFilters.classList.contains('collapsed')) {
+        toggleBtn.textContent = '▶';
+    } else {
+        toggleBtn.textContent = '▼';
+    }
 });
 
 
