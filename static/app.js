@@ -171,7 +171,7 @@ map.addControl(new L.Control.FindMe());
 
 map.on('locationfound', e => {
     L.marker(e.latlng).addTo(map)
-     .bindPopup("You are somewhere around here.").openPopup();
+     .bindPopup("You are here.").openPopup();
 });
 map.on('locationerror', e => {
     alert(e.message);
@@ -244,6 +244,7 @@ const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
 const statsContainer = document.getElementById('stats-container');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
+const loader = document.getElementById('loading-indicator');
 
 // =============================================================================
 //  CORE APPLICATION LOGIC
@@ -574,6 +575,8 @@ function buildInspectionReportPopup(report) {
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
+            <a href="https://aphis.my.site.com/PublicSearchTool/s/inspection-reports" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Reports Search Tool</strong></a>
+            <p></p>
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
 }
@@ -685,11 +688,14 @@ map.on('popupopen', function (e) {
 
 // REPLACE the existing initializeApp function with this one
 async function initializeApp() {
-    const loader = document.getElementById('loader-overlay'); 
     let urlParams; // Declare urlParams here, in the higher scope
+    let loaderTimeout;
 
     try {
-        if(loader) loader.style.display = 'flex';
+        // Show loader only if data takes more than 100ms to load
+        loaderTimeout = setTimeout(() => {
+            if(loader) loader.style.display = 'flex';
+        }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
             fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
@@ -747,6 +753,7 @@ async function initializeApp() {
         console.error('Failed to fetch initial data:', error);
         if(statsContainer) statsContainer.innerHTML = `Could not load map data. Please try refreshing the page.`;
     } finally {
+        clearTimeout(loaderTimeout);
         if(loader) loader.style.display = 'none';
         isInitialDataLoading = false;
         if(urlParams && !urlParams.has('lat')) { // Check if urlParams exists before using it

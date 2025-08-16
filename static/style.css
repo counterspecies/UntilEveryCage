@@ -25,7 +25,7 @@ a:hover {
 .manifesto-container,
 .kill-counter-container,
 #filter-container {
-    max-width: 920px; /* Increased from 800px (15% larger) */
+    max-width: 1120px; 
     margin: 2rem auto;
     padding: 0.75rem;
     background-color: #ffffff;
@@ -155,7 +155,7 @@ hr {
     justify-content: center;
     gap: 2rem;             /* Space between the two containers */
     padding: 2rem;         /* Space around the outside */
-    max-width: 1610px;     /* Increased from 1400px (15% larger) */
+    max-width: 1710px;    
     margin: 0 auto;        /* Center the wrapper on the page */
 }
 
@@ -167,12 +167,12 @@ hr {
 
 /* Override the general max-width for the manifesto to give it more room */
 .manifesto-container {
-    max-width: 863px; /* Increased from 750px (15% larger) */
+    max-width: 863px; 
 }
 
 /* Override the general max-width for the kill-counter */
 .kill-counter-container {
-    max-width: 633px; /* Increased from 550px (15% larger) */
+    max-width: 633px;
 }
 
 /* --- Fluid Typography for Proportional Scaling --- */
@@ -606,3 +606,40 @@ hr {
 }
 
 /* Map controls moved to bottom, no positioning conflicts */
+
+/* --- Loading Indicator Styles --- */
+#loading-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #c81a2a;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+}
