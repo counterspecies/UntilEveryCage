@@ -353,7 +353,7 @@ hr {
 }
 
 .leaflet-control-layers-base label {
-    font-size: 18px; /* 30% bigger: 15px → 20px */
+    font-size: 15px; /* 30% bigger: 15px → 20px */
     line-height: 1.5; /* Adds more space between the two lines */
 }
 
