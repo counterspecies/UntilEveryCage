@@ -85,6 +85,7 @@ This project stands on the shoulders of giants and is inspired by the vital work
 
 * [FinalNail.com](https://finalnail.com/)
 * [ADAPTT](https://www.adaptt.org/)
+
 * The countless activists and undercover investigators who risk their safety to expose the truth.
 
 ## Contact
