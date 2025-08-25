@@ -550,7 +550,7 @@ function buildLabPopup(lab) {
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
             
             <hr>
-            <p><strong>Animals Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
+            <p><strong>Animals Being Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
             ${arloUrl ? `<p><a href="${arloUrl}" target="_blank" rel="noopener noreferrer"><strong>View Full Reports on ARLO</strong></a></p>` : ''}
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
