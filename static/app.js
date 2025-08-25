@@ -223,7 +223,7 @@ let isInitialDataLoading = true;
 
 // --- Layer Groups ---
 // A SINGLE cluster group for all marker types
-const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 35, disableClusteringAtZoom: 9 });
+const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 35, disableClusteringAtZoom: 8 });
 
 // Individual layers for when clustering is disabled
 const slaughterhouseFeatureLayer = L.layerGroup();
