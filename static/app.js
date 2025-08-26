@@ -719,7 +719,7 @@ async function initializeApp() {
         ].filter(Boolean))];
         allStateValues.sort();
         
-        stateSelector.innerHTML = '<option value="all">All States</option>';
+        stateSelector.innerHTML = '<option value="all">Showing All States</option>';
         allStateValues.forEach(state => {
             const option = document.createElement('option');
             option.value = state;
