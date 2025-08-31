@@ -244,6 +244,7 @@ const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
 const statsContainer = document.getElementById('stats-container');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
+const downloadCsvBtn = document.getElementById('download-csv-btn');
 const loader = document.getElementById('loading-indicator');
 
 // =============================================================================
@@ -386,6 +387,14 @@ function applyFilters(shouldUpdateView = false) {
     }
     filteredInspections.forEach(report => addMarkerToLayer(plotMarker(report, 'inspection'), inspectionLayer));
     
+    // Expose last filtered sets for CSV export
+    window.__lastFiltered = {
+        slaughterhouses,
+        processingPlants,
+        filteredLabs,
+        filteredInspections
+    };
+
     // --- 5. Add layers to map ---
     if (useClustering) {
         map.addLayer(unifiedClusterLayer);
@@ -624,6 +633,143 @@ resetFiltersBtn.addEventListener('click', () => {
     dealersCheckbox.checked = true;
     exhibitorsCheckbox.checked = true;
     applyFilters(true); // true to reset the map view
+});
+
+// --- CSV DOWNLOAD ---
+function toCsvValue(v) {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+}
+
+function buildUnifiedCsvRows(data) {
+    const rows = [];
+    const add = (obj) => rows.push(obj);
+
+    // USDA: slaughterhouses and processing plants
+    (window.__lastFiltered?.slaughterhouses || []).forEach(loc => add({
+        type: 'usda_slaughter',
+        establishment_id: loc.establishment_id,
+        establishment_name: loc.establishment_name,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        state: loc.state,
+        city: loc.city,
+        street: loc.street,
+        zip: loc.zip,
+        phone: loc.phone,
+        grant_date: loc.grant_date,
+        activities: loc.activities,
+        slaughter: loc.slaughter,
+        animals_slaughtered: loc.animals_slaughtered,
+        animals_processed: loc.animals_processed,
+        slaughter_volume_category: loc.slaughter_volume_category,
+        processing_volume_category: loc.processing_volume_category,
+        dbas: loc.dbas
+    }));
+
+    (window.__lastFiltered?.processingPlants || []).forEach(loc => add({
+        type: 'usda_processing',
+        establishment_id: loc.establishment_id,
+        establishment_name: loc.establishment_name,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        state: loc.state,
+        city: loc.city,
+        street: loc.street,
+        zip: loc.zip,
+        phone: loc.phone,
+        grant_date: loc.grant_date,
+        activities: loc.activities,
+        slaughter: loc.slaughter,
+        animals_slaughtered: loc.animals_slaughtered,
+        animals_processed: loc.animals_processed,
+        slaughter_volume_category: loc.slaughter_volume_category,
+        processing_volume_category: loc.processing_volume_category,
+        dbas: loc.dbas
+    }));
+
+    // APHIS Labs
+    (window.__lastFiltered?.filteredLabs || []).forEach(lab => add({
+        type: 'aphis_lab',
+        account_name: lab['Account Name'],
+        certificate_number: lab['Certificate Number'],
+        registration_type: lab['Registration Type'],
+        certificate_status: lab['Certificate Status'],
+        status_date: lab['Status Date'],
+        address_line_1: lab['Address Line 1'],
+        address_line_2: lab['Address Line 2'],
+        city_state_zip: lab['City-State-Zip'],
+        county: lab['County'],
+        year: lab['Year'],
+        animals_tested: lab['Animals Tested On'],
+        latitude: lab.latitude,
+        longitude: lab.longitude
+    }));
+
+    // Inspection reports
+    (window.__lastFiltered?.filteredInspections || []).forEach(rep => add({
+        type: 'aphis_other',
+        account_name: rep['Account Name'],
+        customer_number: rep['Customer Number'],
+        certificate_number: rep['Certificate Number'],
+        license_type: rep['License Type'],
+        certificate_status: rep['Certificate Status'],
+        status_date: rep['Status Date'],
+        address_line_1: rep['Address Line 1'],
+        address_line_2: rep['Address Line 2'],
+        city_state_zip: rep['City-State-Zip'],
+        county: rep['County'],
+        city: rep['City'],
+        state: rep['State'],
+        zip: rep['Zip'],
+        latitude: rep['Geocodio Latitude'],
+        longitude: rep['Geocodio Longitude']
+    }));
+
+    return rows;
+}
+
+function buildCsvString(rows) {
+    if (!rows.length) return '';
+    // Collect full set of keys to include ALL data across types
+    const headersSet = new Set();
+    rows.forEach(r => Object.keys(r).forEach(k => headersSet.add(k)));
+    const headers = Array.from(headersSet);
+
+    const lines = [];
+    lines.push(headers.map(toCsvValue).join(','));
+    for (const r of rows) {
+        const line = headers.map(h => toCsvValue(r[h] !== undefined ? r[h] : ''));
+        lines.push(line.join(','));
+    }
+    return lines.join('\n');
+}
+
+function triggerDownload(filename, content) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+downloadCsvBtn.addEventListener('click', () => {
+    const rows = buildUnifiedCsvRows();
+    const csv = buildCsvString(rows);
+    if (!csv) {
+        alert('No data to download for the current filters.');
+        return;
+    }
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    triggerDownload(`untileverycage-visible-${ts}.csv`, csv);
 });
 
 // Filter panel toggle functionality
