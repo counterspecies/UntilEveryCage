@@ -848,9 +848,9 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app//api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app//api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app//api/inspection-reports')
+            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports')
         ]);
 
         if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
