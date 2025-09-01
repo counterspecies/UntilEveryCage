@@ -182,38 +182,137 @@ map.on('locationerror', e => {
 //  ICONS AND LAYER GROUPS
 // =============================================================================
 
-// Defines the visual icons used for each type of map marker.
-const slaughterhouseIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+// Scalable icon system
+const BASE_ICON_SPECS = {
+    slaughter: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    },
+    processing: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    },
+    lab: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    },
+    breeder: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    },
+    dealer: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    },
+    exhibitor: {
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    }
+};
+
+const PIN_SCALES = [0.5, 0.75, 1];
+let currentPinScaleIndex = PIN_SCALES.indexOf(1) !== -1 ? PIN_SCALES.indexOf(1) : PIN_SCALES.length - 1;
+
+const round = (n) => Math.max(1, Math.round(n));
+function createScaledIcon(spec, scale) {
+    const sz = spec.iconSize;
+    const sh = spec.shadowSize;
+    const ia = spec.iconAnchor;
+    const pa = spec.popupAnchor;
+    const s = scale;
+    return L.icon({
+        iconUrl: spec.iconUrl,
+        shadowUrl: spec.shadowUrl,
+        iconSize: [round(sz[0] * s), round(sz[1] * s)],
+        shadowSize: [round(sh[0] * s), round(sh[1] * s)],
+        iconAnchor: [round(ia[0] * s), round(ia[1] * s)],
+        popupAnchor: [round(pa[0] * s), round(pa[1] * s)]
+    });
+}
+
+function getCurrentScale() { return PIN_SCALES[currentPinScaleIndex]; }
+
+// Live icon instances used when plotting markers
+let slaughterhouseIcon = createScaledIcon(BASE_ICON_SPECS.slaughter, getCurrentScale());
+let processingIcon = createScaledIcon(BASE_ICON_SPECS.processing, getCurrentScale());
+let labIcon = createScaledIcon(BASE_ICON_SPECS.lab, getCurrentScale());
+let breederIcon = createScaledIcon(BASE_ICON_SPECS.breeder, getCurrentScale());
+let dealerIcon = createScaledIcon(BASE_ICON_SPECS.dealer, getCurrentScale());
+let exhibitorIcon = createScaledIcon(BASE_ICON_SPECS.exhibitor, getCurrentScale());
+
+function refreshGlobalIcons() {
+    const s = getCurrentScale();
+    slaughterhouseIcon = createScaledIcon(BASE_ICON_SPECS.slaughter, s);
+    processingIcon = createScaledIcon(BASE_ICON_SPECS.processing, s);
+    labIcon = createScaledIcon(BASE_ICON_SPECS.lab, s);
+    breederIcon = createScaledIcon(BASE_ICON_SPECS.breeder, s);
+    dealerIcon = createScaledIcon(BASE_ICON_SPECS.dealer, s);
+    exhibitorIcon = createScaledIcon(BASE_ICON_SPECS.exhibitor, s);
+}
+
+function iconForType(type) {
+    switch (type) {
+        case 'slaughter': return slaughterhouseIcon;
+        case 'processing': return processingIcon;
+        case 'lab': return labIcon;
+        case 'breeder': return breederIcon;
+        case 'dealer': return dealerIcon;
+        case 'exhibitor': return exhibitorIcon;
+        default: return processingIcon;
+    }
+}
+
+function updateAllMarkerIcons() {
+    // Recreate live icons for the new scale
+    refreshGlobalIcons();
+    const updateMarker = (m) => {
+        if (m && m.setIcon && m._iconType) {
+            m.setIcon(iconForType(m._iconType));
+        }
+    };
+    // Update markers across all layers
+    [unifiedClusterLayer, slaughterhouseFeatureLayer, processingFeatureLayer, labFeatureLayer, inspectionReportFeatureLayer]
+        .forEach(layer => {
+            if (!layer) return;
+            layer.eachLayer(l => {
+                // l may be a marker or a group; try to update directly
+                if (l && l.eachLayer) {
+                    l.eachLayer(inner => updateMarker(inner));
+                } else {
+                    updateMarker(l);
+                }
+            });
+        });
+}
+
+// Control to cycle pin sizes
+L.Control.PinScale = L.Control.extend({
+    options: { position: 'bottomright' },
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-pin-scale');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Toggle pin size';
+        link.style.minWidth = '34px';
+        link.style.textAlign = 'center';
+        const setLabel = () => { link.textContent = `${getCurrentScale()}x`; };
+        setLabel();
+        L.DomEvent.on(link, 'click', L.DomEvent.stop)
+                 .on(link, 'click', () => {
+                     currentPinScaleIndex = (currentPinScaleIndex + 1) % PIN_SCALES.length;
+                     setLabel();
+                     updateAllMarkerIcons();
+                 });
+        return container;
+    }
 });
-const processingIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
-const labIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
-// Separate icons for different inspection report types
-const breederIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
-const dealerIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
-const exhibitorIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-});
+map.addControl(new L.Control.PinScale());
 
 // --- Application State Management ---
 let allLocations = [];
@@ -223,7 +322,7 @@ let isInitialDataLoading = true;
 
 // --- Layer Groups ---
 // A SINGLE cluster group for all marker types
-const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 35, disableClusteringAtZoom: 10 });
+const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50, disableClusteringAtZoom: 10 });
 
 // Individual layers for when clustering is disabled
 const slaughterhouseFeatureLayer = L.layerGroup();
@@ -357,7 +456,7 @@ function applyFilters(shouldUpdateView = false) {
     if (testingLabsCheckbox.checked) totalMarkerCount += filteredLabs.length;
     totalMarkerCount += filteredInspections.length;
 
-    const CLUSTER_THRESHOLD = 2100;
+    const CLUSTER_THRESHOLD = 2800;
     const useClustering = totalMarkerCount >= CLUSTER_THRESHOLD;
 
     updateStats(slaughterhouses.length, processingPlants.length, filteredLabs.length, filteredInspections.length);
@@ -417,28 +516,27 @@ function applyFilters(shouldUpdateView = false) {
 }
 
 function plotMarker(data, type) {
-    let lat, lng, icon, popupContent;
+    let lat, lng, iconType, popupContent;
 
     if (type === 'lab') {
         lat = data.latitude;
         lng = data.longitude;
-        icon = labIcon;
+        iconType = 'lab';
         popupContent = buildLabPopup(data);
     } else if (type === 'inspection') {
         lat = parseFloat(data['Geocodio Latitude']);
         lng = parseFloat(data['Geocodio Longitude']);
         
-        // Choose icon based on license type
+        // Choose icon type based on license type
         const licenseType = data['License Type'];
         if (licenseType === 'Class A - Breeder') {
-            icon = breederIcon;
+            iconType = 'breeder';
         } else if (licenseType === 'Class B - Dealer') {
-            icon = dealerIcon;
+            iconType = 'dealer';
         } else if (licenseType === 'Class C - Exhibitor') {
-            icon = exhibitorIcon;
+            iconType = 'exhibitor';
         } else {
-            // Fallback to blue if license type is unknown
-            icon = breederIcon;
+            iconType = 'breeder'; // fallback
         }
         
         popupContent = buildInspectionReportPopup(data);
@@ -446,12 +544,14 @@ function plotMarker(data, type) {
         lat = data.latitude;
         lng = data.longitude;
         const isSlaughterhouse = type === true;
-        icon = isSlaughterhouse ? slaughterhouseIcon : processingIcon;
+        iconType = isSlaughterhouse ? 'slaughter' : 'processing';
         popupContent = buildUsdaPopup(data, isSlaughterhouse);
     }
 
     if (lat && lng) {
-        const marker = L.marker([lat, lng], { icon: icon });
+        const marker = L.marker([lat, lng], { icon: iconForType(iconType) });
+        // store marker type for future resizing
+        marker._iconType = iconType;
         marker.bindPopup(popupContent);
         return marker;
     }
