@@ -14,7 +14,7 @@ function loadFooter() {
         <a href="https://ko-fi.com/untileverycageisempty" target="_blank" rel="noopener noreferrer">supporting its server and data costs</a>.
     </p>
     <p class="footer-small-text">
-        All data is sourced from public records, including the USDA and APHIS. Any names and addresses are published for educational or research purposes. We do not encourage illegal activities.
+        All data is sourced from public records, including the USDA, APHIS, and the BVL (Germany). Any names and addresses are published for educational or research purposes. We do not encourage illegal activities.
     </p>
     <p class="footer-small-text">
         Source code is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">AGPLv3</a>. Compiled data is licensed under <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>. Kill counter adapted from <a href="https://www.adaptt.org/" target="_blank" rel="noopener noreferrer">ADAPTT</a>. Website inspired by the <a href="https://finalnail.com/" target="_blank" rel="noopener noreferrer">Final Nail</a>.
