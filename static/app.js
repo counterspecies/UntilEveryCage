@@ -29,7 +29,7 @@ const map = L.map('map', {
     maxBounds: worldBounds,
     maxBoundsViscosity: 0.1, // Makes the map "bounce back" at the edges.
     zoomControl: false // Disable default zoom control, we'll add it to bottom
-}).setView([41.24359, -49.57343], 2).setMinZoom(1).setZoom(2);
+}).setView([31.42841, -49.57343], 2).setMinZoom(1).setZoom(2);
 
 // Add zoom control to bottom-left
 //L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -410,7 +410,7 @@ function applyFilters(shouldUpdateView = false) {
         if (!isAllStatesView && markerBounds.length > 0) {
             map.fitBounds(L.latLngBounds(markerBounds).pad(0.1));
         } else if (isAllStatesView) {
-            map.setView([41.24359, -49.57343], 2).setZoom(2);
+            map.setView([31.42841, -49.57343], 2).setZoom(2);
         }
     }
     updateUrlWithCurrentState();
