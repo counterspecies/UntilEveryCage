@@ -29,7 +29,7 @@ const map = L.map('map', {
     maxBounds: worldBounds,
     maxBoundsViscosity: 0.1, // Makes the map "bounce back" at the edges.
     zoomControl: false // Disable default zoom control, we'll add it to bottom
-}).setView([38.438847, -99.579560], 4).setMinZoom(2).setZoom(4);
+}).setView([41.24359, -49.57343], 2).setMinZoom(1).setZoom(2);
 
 // Add zoom control to bottom-left
 //L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -223,7 +223,7 @@ let isInitialDataLoading = true;
 
 // --- Layer Groups ---
 // A SINGLE cluster group for all marker types
-const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 35, disableClusteringAtZoom: 8 });
+const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 35, disableClusteringAtZoom: 10 });
 
 // Individual layers for when clustering is disabled
 const slaughterhouseFeatureLayer = L.layerGroup();
@@ -410,7 +410,7 @@ function applyFilters(shouldUpdateView = false) {
         if (!isAllStatesView && markerBounds.length > 0) {
             map.fitBounds(L.latLngBounds(markerBounds).pad(0.1));
         } else if (isAllStatesView) {
-            map.setView([38.438847, -99.579560], 4);
+            map.setView([41.24359, -49.57343], 2).setZoom(2);
         }
     }
     updateUrlWithCurrentState();
@@ -848,9 +848,9 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports')
+            fetch('http://127.0.0.1:8000/api/locations'),
+            fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
         if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
