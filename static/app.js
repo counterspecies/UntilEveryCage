@@ -320,6 +320,94 @@ let allLabLocations = [];
 let allInspectionReports = [];
 let isInitialDataLoading = true;
 
+// --- State Name Mapping ---
+const US_STATE_NAMES = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
+    'DC': 'District of Columbia', 'AS': 'American Samoa', 'GU': 'Guam', 'MP': 'Northern Mariana Islands',
+    'PR': 'Puerto Rico', 'VI': 'U.S. Virgin Islands'
+};
+
+const GERMAN_STATE_NAMES = {
+    'BW': 'Baden-Württemberg', 'BY': 'Bayern', 'BE': 'Berlin', 'BB': 'Brandenburg',
+    'HB': 'Bremen', 'HH': 'Hamburg', 'HE': 'Hessen', 'MV': 'Mecklenburg-Vorpommern',
+    'NI': 'Niedersachsen', 'NW': 'Nordrhein-Westfalen', 'RP': 'Rheinland-Pfalz',
+    'SL': 'Saarland', 'SN': 'Sachsen', 'ST': 'Sachsen-Anhalt', 'SH': 'Schleswig-Holstein', 'TH': 'Thüringen',
+    'DE_UNKNOWN': 'Deutschland (Unspecified)'
+};
+
+function getStateDisplayName(stateCode) {
+    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || stateCode;
+}
+
+function isGermanState(stateCode) {
+    return GERMAN_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'DE_UNKNOWN';
+}
+
+function isUSState(stateCode) {
+    return US_STATE_NAMES.hasOwnProperty(stateCode);
+}
+
+// --- Hierarchical State Selection Functions ---
+function populateCountrySelector(allStateValues) {
+    const hasUSStates = allStateValues.some(state => isUSState(state));
+    const hasGermanStates = allStateValues.some(state => isGermanState(state));
+    
+    countrySelector.innerHTML = '<option value="all">All Countries</option>';
+    
+    if (hasUSStates) {
+        const usOption = document.createElement('option');
+        usOption.value = 'US';
+        usOption.textContent = 'United States';
+        countrySelector.appendChild(usOption);
+    }
+    
+    if (hasGermanStates) {
+        const deOption = document.createElement('option');
+        deOption.value = 'DE';
+        deOption.textContent = 'Deutschland';
+        countrySelector.appendChild(deOption);
+    }
+}
+
+function populateStateSelector(allStateValues, selectedCountry = 'all') {
+    let filteredStates = [];
+    
+    if (selectedCountry === 'all') {
+        filteredStates = allStateValues;
+    } else if (selectedCountry === 'US') {
+        filteredStates = allStateValues.filter(state => isUSState(state));
+    } else if (selectedCountry === 'DE') {
+        filteredStates = allStateValues.filter(state => isGermanState(state));
+    }
+    
+    stateSelector.innerHTML = '<option value="all">All States/Provinces</option>';
+    
+    // Sort states alphabetically by display name
+    filteredStates
+        .sort((a, b) => getStateDisplayName(a).localeCompare(getStateDisplayName(b)))
+        .forEach(state => {
+            const option = document.createElement('option');
+            option.value = state;
+            option.textContent = getStateDisplayName(state);
+            stateSelector.appendChild(option);
+        });
+}
+
+function getSelectedCountryForState(stateCode) {
+    if (isUSState(stateCode)) return 'US';
+    if (isGermanState(stateCode)) return 'DE';
+    return 'all';
+}
+
 // --- Layer Groups ---
 // A SINGLE cluster group for all marker types
 const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50, disableClusteringAtZoom: 10 });
@@ -338,6 +426,7 @@ const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
 const breedersCheckbox = document.getElementById('breedersCheckbox');
 const dealersCheckbox = document.getElementById('dealersCheckbox');
 const exhibitorsCheckbox = document.getElementById('exhibitorsCheckbox');
+const countrySelector = document.getElementById('country-selector');
 const stateSelector = document.getElementById('state-selector');
 const nameSearchInput = document.getElementById('name-search-input');
 const shareViewBtn = document.getElementById('share-view-btn');
@@ -348,11 +437,11 @@ const loader = document.getElementById('loading-indicator');
 
 // CSV export helpers
 function normalizeUsdaRow(loc, isSlaughterhouse) {
-    const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${loc.state?.trim() || ''} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
+    const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${getStateDisplayName(loc.state?.trim() || '')} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
     return {
         Type: isSlaughterhouse ? 'Slaughterhouse' : 'Processing',
         Name: loc.establishment_name || '',
-        State: loc.state || '',
+        State: getStateDisplayName(loc.state || ''),
         City: loc.city || '',
         ZIP: loc.zip || '',
         Address: address,
@@ -479,6 +568,7 @@ function updateUrlWithCurrentState() {
         lat: center.lat.toFixed(5),
         lng: center.lng.toFixed(5),
         zoom: zoom,
+        country: countrySelector.value,
         state: stateSelector.value,
     });
 
@@ -502,6 +592,7 @@ function updateUrlWithCurrentState() {
 }
 
 function applyFilters(shouldUpdateView = false) {
+    const selectedCountry = countrySelector.value;
     const selectedState = stateSelector.value;
     const searchTerm = nameSearchInput.value.toLowerCase().trim();
     const isAllStatesView = selectedState === 'all';
@@ -528,10 +619,22 @@ function applyFilters(shouldUpdateView = false) {
     const effectiveSearchTerm = searchSynonyms[searchTerm] || searchTerm;
 
     const filteredUsdaLocations = allLocations.filter(loc => {
+        // Country filtering
+        let countryMatch = selectedCountry === 'all';
+        if (!countryMatch) {
+            if (selectedCountry === 'US' && isUSState(loc.state)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'DE' && isGermanState(loc.state)) {
+                countryMatch = true;
+            }
+        }
+        if (!countryMatch) return false;
+
+        // State filtering (within the selected country)
         const stateMatch = isAllStatesView || loc.state === selectedState;
         if (!stateMatch) return false;
 
-        if (!searchTerm) return true; // If no search term, only filter by state
+        if (!searchTerm) return true; // If no search term, only filter by country and state
 
         const nameMatch = (loc.establishment_name && loc.establishment_name.toLowerCase().includes(searchTerm)) ||
                           (loc.dbas && loc.dbas.toLowerCase().includes(searchTerm));
@@ -543,7 +646,21 @@ function applyFilters(shouldUpdateView = false) {
     });
 
     const filteredLabs = allLabLocations.filter(lab => {
-        const stateMatch = isAllStatesView || getStateFromCityStateZip(lab['City-State-Zip']) === selectedState;
+        const labState = getStateFromCityStateZip(lab['City-State-Zip']);
+        
+        // Country filtering
+        let countryMatch = selectedCountry === 'all';
+        if (!countryMatch) {
+            if (selectedCountry === 'US' && isUSState(labState)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'DE' && isGermanState(labState)) {
+                countryMatch = true;
+            }
+        }
+        if (!countryMatch) return false;
+
+        // State filtering (within the selected country)
+        const stateMatch = isAllStatesView || labState === selectedState;
         if (!stateMatch) return false;
 
         if (!searchTerm) return true;
@@ -555,7 +672,21 @@ function applyFilters(shouldUpdateView = false) {
     });
 
     const filteredInspections = allInspectionReports.filter(report => {
-        const stateMatch = isAllStatesView || report['State'] === selectedState;
+        const reportState = report['State'];
+        
+        // Country filtering
+        let countryMatch = selectedCountry === 'all';
+        if (!countryMatch) {
+            if (selectedCountry === 'US' && isUSState(reportState)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'DE' && isGermanState(reportState)) {
+                countryMatch = true;
+            }
+        }
+        if (!countryMatch) return false;
+
+        // State filtering (within the selected country)
+        const stateMatch = isAllStatesView || reportState === selectedState;
         const nameMatch = !searchTerm || (report['Account Name'] && report['Account Name'].toLowerCase().includes(searchTerm));
         if (!stateMatch || !nameMatch) return false;
 
@@ -696,7 +827,7 @@ function updateStats(slaughterhouses, processing, labs, inspections) {
 function buildUsdaPopup(location, isSlaughterhouse) {
     const establishmentName = location.establishment_name || 'Unknown Name';
     const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
-    const fullAddress = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${location.state.trim()} ${location.zip}` : 'Address not available';
+    const fullAddress = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${getStateDisplayName(location.state.trim())} ${location.zip}` : 'Address not available';
     const establishmentId = location.establishment_id;
     const grantDate = location.grant_date;
     const phone = location.phone;
@@ -851,6 +982,19 @@ function buildInspectionReportPopup(report) {
 [slaughterhouseCheckbox, meatProcessingCheckbox, testingLabsCheckbox, breedersCheckbox, dealersCheckbox, exhibitorsCheckbox]
 .forEach(checkbox => checkbox.addEventListener('change', () => applyFilters(false)));
 
+// Country selector event handler - updates state dropdown when country changes
+countrySelector.addEventListener('change', () => {
+    const selectedCountry = countrySelector.value;
+    const allStateValues = [...new Set([
+        ...allLocations.map(loc => loc.state),
+        ...allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])),
+        ...allInspectionReports.map(report => report['State'])
+    ].filter(Boolean))];
+    
+    populateStateSelector(allStateValues, selectedCountry);
+    applyFilters(true);
+});
+
 stateSelector.addEventListener('change', () => applyFilters(true));
 nameSearchInput.addEventListener('input', () => applyFilters(false));
 map.on('moveend', updateUrlWithCurrentState);
@@ -875,6 +1019,16 @@ shareViewBtn.addEventListener('click', () => {
 });
 
 resetFiltersBtn.addEventListener('click', () => {
+    countrySelector.value = 'all';
+    
+    // Repopulate state selector with all states since country is reset to 'all'
+    const allStateValues = [...new Set([
+        ...allLocations.map(loc => loc.state),
+        ...allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])),
+        ...allInspectionReports.map(report => report['State'])
+    ].filter(Boolean))];
+    populateStateSelector(allStateValues, 'all');
+    
     stateSelector.value = 'all';
     nameSearchInput.value = '';
     slaughterhouseCheckbox.checked = true;
@@ -976,6 +1130,29 @@ async function initializeApp() {
         allLabLocations = await aphisResponse.json();
         allInspectionReports = await inspectionsResponse.json();
         
+        // Process German locations - extract specific German states from establishment IDs
+        allLocations = allLocations.map(location => {
+            // Check if location doesn't have a state and appears to be in Germany
+            if (!location.state || location.state.trim() === '') {
+                // First try to extract German state from establishment ID (most reliable)
+                if (location.establishment_id && typeof location.establishment_id === 'string') {
+                    const germanStateMatch = location.establishment_id.match(/^(BW|BY|BE|BB|HB|HH|HE|MV|NI|NW|RP|SL|SN|ST|SH|TH)\s/);
+                    if (germanStateMatch) {
+                        const germanStateCode = germanStateMatch[1];
+                        return { ...location, state: germanStateCode };
+                    }
+                }
+                // Fallback: Check if coordinates are within Germany's boundaries
+                // Germany: latitude ~47.3-55.1, longitude ~5.9-15.0
+                if (location.latitude > 47 && location.latitude < 56 && 
+                    location.longitude > 5 && location.longitude < 16) {
+                    // If we can't determine the specific state, use a generic German identifier
+                    return { ...location, state: 'DE_UNKNOWN' };
+                }
+            }
+            return location;
+        });
+        
         const allStateValues = [...new Set([
             ...allLocations.map(loc => loc.state),
             ...allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])),
@@ -983,13 +1160,9 @@ async function initializeApp() {
         ].filter(Boolean))];
         allStateValues.sort();
         
-        stateSelector.innerHTML = '<option value="all">Showing All States</option>';
-        allStateValues.forEach(state => {
-            const option = document.createElement('option');
-            option.value = state;
-            option.textContent = state;
-            stateSelector.appendChild(option);
-        });
+        // Populate country and state dropdowns
+        populateCountrySelector(allStateValues);
+        populateStateSelector(allStateValues, 'all');
 
         urlParams = new URLSearchParams(window.location.search); // Assign the value here
         const layersParam = urlParams.get('layers');
@@ -1003,7 +1176,24 @@ async function initializeApp() {
             exhibitorsCheckbox.checked = visibleLayers.has('exhibitors');
         }
         
-        stateSelector.value = urlParams.get('state') || 'all';
+        const urlCountry = urlParams.get('country') || 'all';
+        const urlState = urlParams.get('state') || 'all';
+        
+        countrySelector.value = urlCountry;
+        
+        // If a specific country is pre-selected or a specific state is requested, 
+        // make sure state selector is properly filtered
+        if (urlCountry !== 'all') {
+            populateStateSelector(allStateValues, urlCountry);
+        } else if (urlState !== 'all') {
+            const stateCountry = getSelectedCountryForState(urlState);
+            if (stateCountry !== 'all') {
+                countrySelector.value = stateCountry;
+                populateStateSelector(allStateValues, stateCountry);
+            }
+        }
+        
+        stateSelector.value = urlState;
         nameSearchInput.value = urlParams.get('search') || '';
 
         let shouldUpdateViewOnLoad = true;
