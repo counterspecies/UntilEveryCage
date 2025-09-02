@@ -26,8 +26,8 @@ const worldBounds = L.latLngBounds(southWest, northEast);
 
 // Create the main Leaflet map instance, centered on the continental US.
 const map = L.map('map', {
-    maxBounds: worldBounds,
-    maxBoundsViscosity: 0.1, // Makes the map "bounce back" at the edges.
+    //maxBounds: worldBounds,
+    //maxBoundsViscosity: 0.0, // Makes the map "bounce back" at the edges.
     zoomControl: false // Disable default zoom control, we'll add it to bottom
 }).setView([31.42841, -49.57343], 2).setMinZoom(1).setZoom(2);
 
