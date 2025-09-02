@@ -29,7 +29,45 @@ const map = L.map('map', {
     //maxBounds: worldBounds,
     //maxBoundsViscosity: 0.0, // Makes the map "bounce back" at the edges.
     zoomControl: false // Disable default zoom control, we'll add it to bottom
-}).setView([31.42841, -49.57343], 2).setMinZoom(1).setZoom(2);
+}).setView([31.42841, -49.57343], 2).setMinZoom(2).setZoom(2);
+
+// =============================================================================
+//  WORLD WRAPPING FUNCTIONALITY
+// =============================================================================
+
+/**
+ * Corrects coordinates to ensure they stay within world bounds by wrapping longitude
+ * and clamping latitude, creating a seamless looping effect.
+ */
+function correctCoordinates(lat, lng) {
+    // Wrap longitude: if it goes outside ±180, bring it back into range
+    while (lng > 180) lng -= 360;
+    while (lng < -180) lng += 360;
+    
+    // Clamp latitude to valid range (can't wrap north-south)
+    lat = Math.max(-85, Math.min(85, lat)); // Using 85 instead of 90 to match web mercator limits
+    
+    return [lat, lng];
+}
+
+/**
+ * Applies coordinate correction to the current map view
+ */
+function correctMapView() {
+    const center = map.getCenter();
+    const [correctedLat, correctedLng] = correctCoordinates(center.lat, center.lng);
+    
+    // Only update if coordinates actually changed
+    if (Math.abs(center.lat - correctedLat) > 0.001 || Math.abs(center.lng - correctedLng) > 0.001) {
+        map.setView([correctedLat, correctedLng], map.getZoom(), { animate: false });
+    }
+}
+
+// Apply coordinate correction on map move events
+map.on('moveend', correctMapView);
+
+// Also apply correction on drag end for smoother experience
+map.on('dragend', correctMapView);
 
 // Add zoom control to bottom-left
 //L.control.zoom({ position: 'bottomright' }).addTo(map);
