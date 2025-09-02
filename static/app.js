@@ -346,6 +346,126 @@ const resetFiltersBtn = document.getElementById('reset-filters-btn');
 const downloadCsvBtn = document.getElementById('download-csv-btn');
 const loader = document.getElementById('loading-indicator');
 
+// CSV export helpers
+function normalizeUsdaRow(loc, isSlaughterhouse) {
+    const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${loc.state?.trim() || ''} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
+    return {
+        Type: isSlaughterhouse ? 'Slaughterhouse' : 'Processing',
+        Name: loc.establishment_name || '',
+        State: loc.state || '',
+        City: loc.city || '',
+        ZIP: loc.zip || '',
+        Address: address,
+        Latitude: loc.latitude || '',
+        Longitude: loc.longitude || '',
+        EstablishmentID: loc.establishment_id || '',
+        Phone: loc.phone || '',
+        AnimalsProcessed: loc.animals_processed || '',
+        AnimalsSlaughtered: loc.animals_slaughtered || ''
+    };
+}
+function normalizeLabRow(lab) {
+    const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
+    return {
+        Type: 'Lab',
+        Name: lab['Account Name'] || '',
+        State: (lab['City-State-Zip'] || '').split(',')[1]?.trim().split(' ')[0] || '',
+        City: (lab['City-State-Zip'] || '').split(',')[0]?.trim() || '',
+        ZIP: (lab['City-State-Zip'] || '').split(/\s+/).pop() || '',
+        Address: fullAddress,
+        Latitude: lab.latitude || '',
+        Longitude: lab.longitude || '',
+        CertificateNumber: lab['Certificate Number'] || '',
+        AnimalsTestedOn: lab['Animals Tested On'] || ''
+    };
+}
+function normalizeInspectionRow(report) {
+    let type = 'Other';
+    if (report['License Type'] === 'Class A - Breeder') type = 'Breeder';
+    else if (report['License Type'] === 'Class B - Dealer') type = 'Dealer';
+    else if (report['License Type'] === 'Class C - Exhibitor') type = 'Exhibitor';
+    const address = `${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || ''}`.replace(/^,|,$/g, '').trim();
+    return {
+        Type: type,
+        Name: report['Account Name'] || '',
+        State: report['State'] || '',
+        City: (report['City-State-Zip'] || '').split(',')[0]?.trim() || '',
+        ZIP: (report['City-State-Zip'] || '').split(/\s+/).pop() || '',
+        Address: address,
+        Latitude: report['Geocodio Latitude'] || '',
+        Longitude: report['Geocodio Longitude'] || '',
+        CertificateNumber: report['Certificate Number'] || ''
+    };
+}
+function toCsv(rows) {
+    if (!rows || rows.length === 0) return '';
+    const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+    const esc = (v) => {
+        if (v === null || v === undefined) return '';
+        const s = String(v);
+        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+    };
+    const lines = [headers.join(',')].concat(rows.map(r => headers.map(h => esc(r[h])).join(',')));
+    return lines.join('\n');
+}
+function downloadText(filename, text) {
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+if (downloadCsvBtn) {
+    downloadCsvBtn.addEventListener('click', () => {
+        const lf = window.__lastFiltered || {};
+        const includeSlaughter = slaughterhouseCheckbox.checked;
+        const includeProcessing = meatProcessingCheckbox.checked;
+        const includeLabs = testingLabsCheckbox.checked;
+        const includeBreeders = breedersCheckbox.checked;
+        const includeDealers = dealersCheckbox.checked;
+        const includeExhibitors = exhibitorsCheckbox.checked;
+        const rows = [];
+        if (includeSlaughter && Array.isArray(lf.slaughterhouses)) rows.push(...lf.slaughterhouses.map(loc => normalizeUsdaRow(loc, true)));
+        if (includeProcessing && Array.isArray(lf.processingPlants)) rows.push(...lf.processingPlants.map(loc => normalizeUsdaRow(loc, false)));
+        if (includeLabs && Array.isArray(lf.filteredLabs)) rows.push(...lf.filteredLabs.map(lab => normalizeLabRow(lab)));
+        if (Array.isArray(lf.filteredInspections)) {
+            lf.filteredInspections.forEach(r => {
+                if ((includeBreeders && r['License Type'] === 'Class A - Breeder') ||
+                    (includeDealers && r['License Type'] === 'Class B - Dealer') ||
+                    (includeExhibitors && r['License Type'] === 'Class C - Exhibitor')) {
+                    rows.push(normalizeInspectionRow(r));
+                }
+            });
+        }
+        if (rows.length === 0) {
+            alert('No data to export for current filters.');
+            return;
+        }
+        const csv = toCsv(rows);
+        const isComplete = stateSelector.value === 'all'
+            && (nameSearchInput.value.trim() === '')
+            && slaughterhouseCheckbox.checked
+            && meatProcessingCheckbox.checked
+            && testingLabsCheckbox.checked
+            && breedersCheckbox.checked
+            && dealersCheckbox.checked
+            && exhibitorsCheckbox.checked;
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const suffix = isComplete ? 'complete' : 'filtered';
+        const filename = `untileverycage-visible-${dateStr}-${suffix}.csv`;
+        downloadText(filename, csv);
+    });
+}
+
 // =============================================================================
 //  CORE APPLICATION LOGIC
 // =============================================================================
@@ -606,6 +726,17 @@ function buildUsdaPopup(location, isSlaughterhouse) {
         }
     }
 
+    // Check if animals_processed has meaningful data
+    const hasAnimalsProcessed = location.animals_processed && 
+                               location.animals_processed.toLowerCase() !== 'n/a' && 
+                               location.animals_processed.toLowerCase() !== 'unknown' &&
+                               location.animals_processed.trim() !== '';
+    
+    // Check if processing volume has meaningful data
+    const hasProcessingVolume = location.processing_volume_category && 
+                               location.processing_volume_category !== "0.0" &&
+                               animals_processed_monthly_text !== "N/A";
+
     let slaughterText = "";
     if (isSlaughterhouse) {
         let animals_slaughtered_yearly_text = "N/A";
@@ -619,8 +750,28 @@ function buildUsdaPopup(location, isSlaughterhouse) {
                 case "5.0": animals_slaughtered_yearly_text = "Over 10M animals/year."; break;
             }
         }
-        slaughterText = `<hr><p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered || 'N/A'}</p>
-                         <p><strong>Slaughter Volume:</strong> ${animals_slaughtered_yearly_text}</p>`;
+        
+        // Check if animals_slaughtered has meaningful data
+        const hasAnimalsSlaughtered = location.animals_slaughtered && 
+                                     location.animals_slaughtered.toLowerCase() !== 'n/a' && 
+                                     location.animals_slaughtered.toLowerCase() !== 'unknown' &&
+                                     location.animals_slaughtered.trim() !== '';
+        
+        // Check if slaughter volume has meaningful data
+        const hasSlaughterVolume = location.slaughter_volume_category && 
+                                  location.slaughter_volume_category !== "0.0" &&
+                                  animals_slaughtered_yearly_text !== "N/A";
+        
+        // Only include slaughter data if at least one field has meaningful data
+        if (hasAnimalsSlaughtered || hasSlaughterVolume) {
+            slaughterText = `<hr>`;
+            if (hasAnimalsSlaughtered) {
+                slaughterText += `<p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered}</p>`;
+            }
+            if (hasSlaughterVolume) {
+                slaughterText += `<p><strong>Slaughter Volume:</strong> ${animals_slaughtered_yearly_text}</p>`;
+            }
+        }
     }
 
     return `
@@ -633,9 +784,9 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <p><strong>USDA Establishment ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
             <p><strong>Phone:</strong> ${phone ? `<span class="copyable-text" data-copy="${phone}">${phone}</span>` : 'N/A'}</p>
             ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
-            <hr>
-            <p><strong>Products Processed:</strong> ${location.animals_processed || 'N/A'}</p>
-            <p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>
+            ${(hasAnimalsProcessed || hasProcessingVolume) ? '<hr>' : ''}
+            ${hasAnimalsProcessed ? `<p><strong>Products Processed:</strong> ${location.animals_processed}</p>` : ''}
+            ${hasProcessingVolume ? `<p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>` : ''}
             ${slaughterText}
             <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>
         </div>`;
@@ -735,142 +886,6 @@ resetFiltersBtn.addEventListener('click', () => {
     applyFilters(true); // true to reset the map view
 });
 
-// --- CSV DOWNLOAD ---
-function toCsvValue(v) {
-    if (v === null || v === undefined) return '';
-    const s = String(v);
-    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
-        return '"' + s.replace(/"/g, '""') + '"';
-    }
-    return s;
-}
-
-function buildUnifiedCsvRows(data) {
-    const rows = [];
-    const add = (obj) => rows.push(obj);
-
-    // USDA: slaughterhouses and processing plants
-    (window.__lastFiltered?.slaughterhouses || []).forEach(loc => add({
-        type: 'usda_slaughter',
-        establishment_id: loc.establishment_id,
-        establishment_name: loc.establishment_name,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        state: loc.state,
-        city: loc.city,
-        street: loc.street,
-        zip: loc.zip,
-        phone: loc.phone,
-        grant_date: loc.grant_date,
-        activities: loc.activities,
-        slaughter: loc.slaughter,
-        animals_slaughtered: loc.animals_slaughtered,
-        animals_processed: loc.animals_processed,
-        slaughter_volume_category: loc.slaughter_volume_category,
-        processing_volume_category: loc.processing_volume_category,
-        dbas: loc.dbas
-    }));
-
-    (window.__lastFiltered?.processingPlants || []).forEach(loc => add({
-        type: 'usda_processing',
-        establishment_id: loc.establishment_id,
-        establishment_name: loc.establishment_name,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        state: loc.state,
-        city: loc.city,
-        street: loc.street,
-        zip: loc.zip,
-        phone: loc.phone,
-        grant_date: loc.grant_date,
-        activities: loc.activities,
-        slaughter: loc.slaughter,
-        animals_slaughtered: loc.animals_slaughtered,
-        animals_processed: loc.animals_processed,
-        slaughter_volume_category: loc.slaughter_volume_category,
-        processing_volume_category: loc.processing_volume_category,
-        dbas: loc.dbas
-    }));
-
-    // APHIS Labs
-    (window.__lastFiltered?.filteredLabs || []).forEach(lab => add({
-        type: 'aphis_lab',
-        account_name: lab['Account Name'],
-        certificate_number: lab['Certificate Number'],
-        registration_type: lab['Registration Type'],
-        certificate_status: lab['Certificate Status'],
-        status_date: lab['Status Date'],
-        address_line_1: lab['Address Line 1'],
-        address_line_2: lab['Address Line 2'],
-        city_state_zip: lab['City-State-Zip'],
-        county: lab['County'],
-        year: lab['Year'],
-        animals_tested: lab['Animals Tested On'],
-        latitude: lab.latitude,
-        longitude: lab.longitude
-    }));
-
-    // Inspection reports
-    (window.__lastFiltered?.filteredInspections || []).forEach(rep => add({
-        type: 'aphis_other',
-        account_name: rep['Account Name'],
-        customer_number: rep['Customer Number'],
-        certificate_number: rep['Certificate Number'],
-        license_type: rep['License Type'],
-        certificate_status: rep['Certificate Status'],
-        status_date: rep['Status Date'],
-        address_line_1: rep['Address Line 1'],
-        address_line_2: rep['Address Line 2'],
-        city_state_zip: rep['City-State-Zip'],
-        county: rep['County'],
-        city: rep['City'],
-        state: rep['State'],
-        zip: rep['Zip'],
-        latitude: rep['Geocodio Latitude'],
-        longitude: rep['Geocodio Longitude']
-    }));
-
-    return rows;
-}
-
-function buildCsvString(rows) {
-    if (!rows.length) return '';
-    // Collect full set of keys to include ALL data across types
-    const headersSet = new Set();
-    rows.forEach(r => Object.keys(r).forEach(k => headersSet.add(k)));
-    const headers = Array.from(headersSet);
-
-    const lines = [];
-    lines.push(headers.map(toCsvValue).join(','));
-    for (const r of rows) {
-        const line = headers.map(h => toCsvValue(r[h] !== undefined ? r[h] : ''));
-        lines.push(line.join(','));
-    }
-    return lines.join('\n');
-}
-
-function triggerDownload(filename, content) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-downloadCsvBtn.addEventListener('click', () => {
-    const rows = buildUnifiedCsvRows();
-    const csv = buildCsvString(rows);
-    if (!csv) {
-        alert('No data to download for the current filters.');
-        return;
-    }
-    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-    triggerDownload(`untileverycage-visible-${ts}.csv`, csv);
-});
 
 // Filter panel toggle functionality
 const filterHeader = document.querySelector('.filter-header');
