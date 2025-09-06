@@ -10,7 +10,7 @@ The animal agriculture industry's power is built on a foundation of propaganda a
 
 * **Multi-Layer Interactive Map:** Visualizes tens of thousands of facilities across the globe on distinct, toggleable layers.
 * **Comprehensive Data:** Integrates multiple public datasets from government bodies worldwide, such as:
-    * **Slaughterhouses & Processing Plants** (USDA in the U.S., BVL in Germany)
+    * **Slaughterhouses & Processing Plants** (USDA in the U.S., BVL in Germany, FSA in the UK)
     * **Animal Research Laboratories** (APHIS in the U.S.)
     * **Breeders, Dealers, & Exhibitors** (APHIS in the U.S.)
 * **Detailed Facility Information:** Click on any pin to view detailed information, including names, addresses, certificate numbers, operational data, and license types.
@@ -49,12 +49,14 @@ To run this project locally for development or research, follow these steps.
     ```
 
 2.  **Place Data Files:** The backend expects the data files to be present in the `/static_data/` directory. Ensure the necessary files are placed in that folder, for example:
-   #### In /static_data/us
+    #### In /static_data/us
     `locations.csv`
     `aphis_data.csv`
     `inspection_reports.csv`  
-   #### In /static_data/de
-    `locations.csv` 
+    #### In /static_data/de
+    `locations.csv`  
+    #### In /static_data/uk
+    `locations.csv`
 
 4.  **Run the Backend Server:** Use Shuttle to run the project locally.
     ```bash
@@ -94,4 +96,4 @@ This project stands on the shoulders of giants and is inspired by the vital work
 
 For questions, suggestions, or to contribute directly, please send a secure email to: **untileverycageproject@protonmail.com**
 
-### Until every cage is empty.
+### Until every cage is empty
