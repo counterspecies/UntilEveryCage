@@ -5,6 +5,9 @@ body {
     margin: 0;
     background-color: #f4f4f9; /* Light grey background */
     color: #333; /* Dark grey text for readability */
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Full viewport height */
 }
 
 h1, h2, h3, h4 {
@@ -119,7 +122,8 @@ hr {
 
 /* --- Map & Popups --- */
 #map {
-    height: 72vh; 
+    flex: 1; /* Take up all remaining space after header */
+    min-height: 0; /* Allows flex child to shrink below content size */
 }
 
 .info-popup h3 {
@@ -202,6 +206,7 @@ hr {
     max-width: 100%;
     padding: 0.1rem 0;
     border-bottom: 1px solid #333;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .header-container {

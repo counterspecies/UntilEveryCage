@@ -69,8 +69,8 @@ map.on('moveend', correctMapView);
 // Also apply correction on drag end for smoother experience
 map.on('dragend', correctMapView);
 
-// Add zoom control to bottom-left
-//L.control.zoom({ position: 'bottomright' }).addTo(map);
+// Add zoom control to bottom-right
+L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 // Define the base map tile layers (the map imagery itself).
 const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -382,6 +382,8 @@ const GERMAN_STATE_NAMES = {
     'DE_UNKNOWN': 'Deutschland (Unspecified)'
 };
 
+
+
 function getStateDisplayName(stateCode) {
     return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || stateCode;
 }
@@ -394,10 +396,17 @@ function isUSState(stateCode) {
     return US_STATE_NAMES.hasOwnProperty(stateCode);
 }
 
+function isUKState(stateCode) {
+    // UK states/counties are any that aren't US or German states
+    // This is simpler than maintaining a comprehensive UK county list
+    return !isUSState(stateCode) && !isGermanState(stateCode) && stateCode && stateCode.trim() !== '';
+}
+
 // --- Hierarchical State Selection Functions ---
 function populateCountrySelector(allStateValues) {
     const hasUSStates = allStateValues.some(state => isUSState(state));
     const hasGermanStates = allStateValues.some(state => isGermanState(state));
+    const hasUKStates = allStateValues.some(state => isUKState(state));
     
     countrySelector.innerHTML = '<option value="all">All Countries</option>';
     
@@ -414,6 +423,13 @@ function populateCountrySelector(allStateValues) {
         deOption.textContent = 'Deutschland';
         countrySelector.appendChild(deOption);
     }
+    
+    if (hasUKStates) {
+        const ukOption = document.createElement('option');
+        ukOption.value = 'UK';
+        ukOption.textContent = 'United Kingdom';
+        countrySelector.appendChild(ukOption);
+    }
 }
 
 function populateStateSelector(allStateValues, selectedCountry = 'all') {
@@ -425,6 +441,8 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
         filteredStates = allStateValues.filter(state => isUSState(state));
     } else if (selectedCountry === 'DE') {
         filteredStates = allStateValues.filter(state => isGermanState(state));
+    } else if (selectedCountry === 'UK') {
+        filteredStates = allStateValues.filter(state => isUKState(state));
     }
     
     stateSelector.innerHTML = '<option value="all">All States/Provinces</option>';
@@ -443,6 +461,7 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
 function getSelectedCountryForState(stateCode) {
     if (isUSState(stateCode)) return 'US';
     if (isGermanState(stateCode)) return 'DE';
+    if (isUKState(stateCode)) return 'UK';
     return 'all';
 }
 
@@ -664,6 +683,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(loc.state)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'UK' && isUKState(loc.state)) {
+                countryMatch = true;
             }
         }
         if (!countryMatch) return false;
@@ -693,6 +714,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(labState)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'UK' && isUKState(labState)) {
+                countryMatch = true;
             }
         }
         if (!countryMatch) return false;
@@ -718,6 +741,8 @@ function applyFilters(shouldUpdateView = false) {
             if (selectedCountry === 'US' && isUSState(reportState)) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(reportState)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'UK' && isUKState(reportState)) {
                 countryMatch = true;
             }
         }
@@ -950,8 +975,8 @@ function buildUsdaPopup(location, isSlaughterhouse) {
             <p1>(${location.latitude}, ${location.longitude})</p1>
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress}</span></p>
-            <p><strong>USDA Establishment ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
-            <p><strong>Phone:</strong> ${phone ? `<span class="copyable-text" data-copy="${phone}">${phone}</span>` : 'N/A'}</p>
+            <p><strong>ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
+            ${phone && phone.trim() !== '' && phone !== 'N/A' ? `<p><strong>Phone:</strong> <span class="copyable-text" data-copy="${phone}">${phone}</span></p>` : ''}
             ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
             ${(hasAnimalsProcessed || hasProcessingVolume) ? '<hr>' : ''}
             ${hasAnimalsProcessed ? `<p><strong>Products Processed:</strong> ${location.animals_processed}</p>` : ''}
@@ -1155,9 +1180,12 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports')
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports')
+            fetch('http://127.0.0.1:8000/api/locations'),
+            fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
         if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
