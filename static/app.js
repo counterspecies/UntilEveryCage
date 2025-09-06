@@ -968,11 +968,17 @@ function buildUsdaPopup(location, isSlaughterhouse) {
         }
     }
 
+    // Create disclaimer text if needed
+    let disclaimerText = '';
+    if (location.country && location.country !== 'us') {
+        disclaimerText = ' (Approximately)';
+    }
+
     return `
         <div class="info-popup">
             <h3>${establishmentName}</h3>
             <p1><strong>${locationTypeText}</strong></p1><br>
-            <p1>(${location.latitude}, ${location.longitude})</p1>
+            <p1>(${location.latitude}, ${location.longitude}) ${disclaimerText}</p1>
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress}</span></p>
             <p><strong>ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
@@ -998,7 +1004,7 @@ function buildLabPopup(lab) {
         <div class="info-popup">
             <h3>${name}</h3>
             <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1><br>
-            <p1>(${lab.latitude},${lab.longitude})</p1>
+            <p1>(${lab.latitude},${lab.longitude}) (Approximately)</p1>
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
@@ -1028,7 +1034,7 @@ function buildInspectionReportPopup(report) {
         <div class="info-popup inspection-popup">
             <h3>${name}</h3>
             <p1><strong>${classText}</strong></p1><br>
-            <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']})</p1>
+            <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']}) (Approximately)</p1>
             <hr>
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
