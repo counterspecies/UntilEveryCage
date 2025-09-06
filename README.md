@@ -52,9 +52,9 @@ To run this project locally for development or research, follow these steps.
     #### In /static_data/us
     `locations.csv`
     `aphis_data.csv`
-    `inspection_reports.csv`  
+    `inspection_reports.csv`
     #### In /static_data/de
-    `locations.csv`  
+    `locations.csv`
     #### In /static_data/uk
     `locations.csv`
 
@@ -64,7 +64,11 @@ To run this project locally for development or research, follow these steps.
     ```
     The server will start, typically on port `8000`.
 
-5.  **View the Application:** Open your web browser and navigate to the address shown in your terminal (e.g., `http://127.0.0.1:8000`). There you will have access to the backend API running locally.
+## How to View the Page
+
+To view the web page, simply open the `index.html` file located in the root directory of the project in your web browser. This will load the client-side application, which will then connect to the running backend server.
+
+---
 
 ## How to Contribute
 
