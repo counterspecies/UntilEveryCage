@@ -5,8 +5,7 @@ function loadFooter() {
     <p>
         <strong>This is a living project and a work in progress.</strong>
         If you have suggestions, see a data error, or want to contribute,
-        please send a secure email to <a href="mailto:untileverycageproject@protonmail.com">untileverycageproject@protonmail.com</a>
-        or contribute on <a href="https://github.com/eliPerez12/UntilEveryCage">GitHub</a>.
+        please visit our <a href="contribute.html">contribute page</a> or send a secure email to <a href="mailto:untileverycageproject@protonmail.com">untileverycageproject@protonmail.com</a>.
         Your feedback is invaluable.
     </p>
     <p>

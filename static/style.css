@@ -706,3 +706,134 @@ hr {
     font-size: 16px;
     font-weight: 500;
 }
+
+/* --- Contribute Page Styles --- */
+
+.small-text {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+/* Location form container */
+.location-form-container {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.location-form-container h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.location-form-container em {
+    color: #6c757d;
+    display: block;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+}
+
+/* Form styling */
+.placeholder-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    box-sizing: border-box;
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.submit-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:not(:disabled) {
+    background-color: #28a745;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.submit-btn:not(:disabled):hover {
+    background-color: #1e7e34;
+}
+
+.form-note {
+    margin-top: 1rem;
+    font-size: 0.9em;
+    color: #6c757d;
+    padding: 1rem;
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
+/* Code snippets */
+code {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+    padding: 0.2rem 0.4rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+/* Ordered list styling for development steps */
+ol {
+    padding-left: 1.2rem;
+}
+
+ol li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+ol li strong {
+    color: #333;
+}

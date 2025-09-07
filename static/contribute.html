@@ -1,0 +1,176 @@
+<!--
+    Until Every Cage is Empty
+    Copyright (C) 2025 Eli Perez 
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+    Contact the developer directly at untileverycageproject@protonmail.com
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Contribute - Until Every Cage is Empty</title>
+    <meta name="title" content="Contribute - Until Every Cage is Empty" />
+    <meta name="description" content="Learn how to contribute to the Until Every Cage is Empty project through code, data, donations, and advocacy." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://untileverycage.org/contribute" />
+    <meta property="og:title" content="Contribute - Until Every Cage is Empty" />
+    <meta property="og:description" content="Learn how to contribute to the Until Every Cage is Empty project through code, data, donations, and advocacy." />
+    <meta property="og:image" content="https://untileverycage.org/assets/icon.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://untileverycage.org/contribute" />
+    <meta property="twitter:title" content="Contribute - Until Every Cage is Empty" />
+    <meta property="twitter:description" content="Learn how to contribute to the Until Every Cage is Empty project through code, data, donations, and advocacy." />
+    <meta property="twitter:image" content="https://untileverycage.org/assets/icon.png" />
+
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <h1>Until Every Cage is Empty</h1>
+            <nav class="main-navigation">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Map</a></li>
+                    <li><a href="howtouse.html" class="nav-link">How To Use</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="contribute.html" class="nav-link active">Contribute</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="manifesto-container">
+            <h1>Contribute to Until Every Cage is Empty</h1>
+            
+            <p>This project thrives on community contributions. Whether you're a developer, researcher, activist, or someone who simply believes in transparency and animal liberation, there are meaningful ways for you to contribute to this movement.</p>
+
+            <h2>📍 Submit New Locations</h2>
+            <p>Know of animal exploitation facilities not yet on our map? Help us expand our coverage:</p>
+
+            <div class="location-form-container">
+                <h3>Add a Missing Facility</h3>
+                <p><em>This form is currently a placeholder. For now, please email facility information to <a href="mailto:untileverycageproject@protonmail.com">untileverycageproject@protonmail.com</a>. We're working on implementing a full submission system.</em></p>
+                
+                <form id="location-submission-form" class="placeholder-form" action="#" method="post">
+                    <div class="form-group">
+                        <label for="facility-name">Facility Name:</label>
+                        <input type="text" id="facility-name" name="facility-name" disabled placeholder="e.g., Smith Meat Processing Plant">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="facility-type">Facility Type:</label>
+                        <select id="facility-type" name="facility-type" disabled>
+                            <option value="">Select Type</option>
+                            <option value="slaughterhouse">Slaughterhouse</option>
+                            <option value="processing">Processing Plant</option>
+                            <option value="lab">Animal Testing Laboratory</option>
+                            <option value="breeder">Animal Breeder</option>
+                            <option value="dealer">Animal Dealer</option>
+                            <option value="exhibitor">Exhibitor/Zoo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Full Address:</label>
+                        <textarea id="address" name="address" rows="3" disabled placeholder="Street address, city, state/province, postal code, country"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="animals">Animals Involved:</label>
+                        <input type="text" id="animals" name="animals" disabled placeholder="e.g., Cattle, Pigs, Chickens">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="source">Data Source:</label>
+                        <input type="text" id="source" name="source" disabled placeholder="e.g., USDA database, government inspection report, FOIA response">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additional-info">Additional Information:</label>
+                        <textarea id="additional-info" name="additional-info" rows="4" disabled placeholder="Any additional details, context, or documentation"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="submitter-email">Your Email (optional):</label>
+                        <input type="email" id="submitter-email" name="submitter-email" disabled placeholder="For follow-up questions only">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" disabled>Submit Location (Coming Soon)</button>
+                </form>
+                
+                <p class="form-note"><strong>Note:</strong> All submissions will be reviewed and verified against government sources before being added to the map. We only include facilities with verifiable public documentation.</p>
+            </div>
+
+            <h2>🛠️ Technical Contributions</h2>
+            <p>Help us build and improve the technical infrastructure that exposes animal exploitation:</p>
+
+            <h3>Contributing to GitHub</h3>
+            <p>Our codebase is open-source and welcomes contributions from developers of all skill levels:</p>
+            
+            <ul>
+                <li><strong>Repository:</strong> <a href="https://github.com/counterspecies/UntilEveryCage" target="_blank" rel="noopener noreferrer">https://github.com/counterspecies/UntilEveryCage</a></li>
+                <li><strong>Backend:</strong> Rust with Axum framework - help improve API endpoints, data processing, and server performance</li>
+                <li><strong>Frontend:</strong> HTML/CSS/JavaScript with Leaflet.js - enhance map functionality, user interface, and accessibility</li>
+                <li><strong>Data Processing:</strong> Python scripts for cleaning and processing government data sources</li>
+            </ul>
+
+            <h2>💰 Financial Support</h2>
+            <p>Running this platform requires server infrastructure, data processing resources, and ongoing maintenance:</p>
+            
+            <h3>Support Our Operations</h3>
+            <p>Your donations directly support:</p>
+            <ul>
+                <li>Server hosting and bandwidth costs</li>
+                <li>Data processing and storage infrastructure</li>
+                <li>Development tools and services</li>
+                <li>Time for ongoing maintenance and improvements</li>
+            </ul>
+            
+            <p><strong><a href="https://ko-fi.com/untileverycageisempty" target="_blank" rel="noopener noreferrer">→ Donate via Ko-fi</a></strong></p>
+            
+            <p class="small-text">This is an independent, ad-free project. We never sell data or compromise our mission for profit. All funds go directly toward maintaining and improving this resource.</p>
+
+            <h2>🔒 Legal & Ethical Guidelines</h2>
+            <p>All contributions must align with our commitment to legal, ethical advocacy:</p>
+
+            <ul>
+                <li><strong>Public Data Only:</strong> We only accept information from government databases, public records, and legally obtained documents</li>
+                <li><strong>Accuracy First:</strong> All data must be verifiable through official sources</li>
+                <li><strong>Legal Methods:</strong> We encourage only legal research methods - no trespassing, breaking and entering, or other illegal activities</li>
+                <li><strong>Strategic Focus:</strong> Information should serve the goal of exposing systematic animal exploitation, not targeting individuals</li>
+                <li><strong>No Personal Information:</strong> We don't publish personal information about employees or individual workers</li>
+            </ul>
+
+            <p><strong>Ready to contribute?</strong> Start by exploring our <a href="https://github.com/counterspecies/UntilEveryCage" target="_blank" rel="noopener noreferrer">GitHub repository</a>, <a href="https://ko-fi.com/untileverycageisempty" target="_blank" rel="noopener noreferrer">supporting us financially</a>, or sending us an email at <a href="mailto:untileverycageproject@protonmail.com">untileverycageproject@protonmail.com</a>. Every contribution, no matter how small, helps expose the hidden infrastructure of animal exploitation.</p>
+
+            <h2><strong>Until every cage is empty.</strong></h2>
+        </div>
+    </div>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer-placeholder"></div>
+
+    <script src="footer.js"></script>
+</body>
+</html>
