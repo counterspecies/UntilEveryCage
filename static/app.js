@@ -382,14 +382,42 @@ const GERMAN_STATE_NAMES = {
     'DE_UNKNOWN': 'Deutschland (Unspecified)'
 };
 
+const SPANISH_STATE_NAMES = {
+    'Andalucía': 'Andalucía',
+    'Aragón': 'Aragón', 
+    'Asturias': 'Asturias',
+    'Canarias': 'Canarias',
+    'Cantabria': 'Cantabria',
+    'Castilla-La Mancha': 'Castilla-La Mancha',
+    'Castilla y León': 'Castilla y León',
+    'Cataluña': 'Cataluña',
+    'Catalunya': 'Catalunya',
+    'Comunidad de Madrid': 'Comunidad de Madrid',
+    'Comunidad Valenciana': 'Comunidad Valenciana',
+    'Euskadi': 'Euskadi',
+    'Extremadura': 'Extremadura',
+    'Galicia': 'Galicia',
+    'Ililles Balears': 'Illes Balears',
+    'La Coruña': 'La Coruña',
+    'La Rioja': 'La Rioja',
+    'Navarra': 'Navarra',
+    'País Vasco': 'País Vasco',
+    'Región de Murcia': 'Región de Murcia',
+    'ES_UNKNOWN': 'España (Unspecified)'
+};
+
 
 
 function getStateDisplayName(stateCode) {
-    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || stateCode;
+    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || SPANISH_STATE_NAMES[stateCode] || stateCode;
 }
 
 function isGermanState(stateCode) {
     return GERMAN_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'DE_UNKNOWN';
+}
+
+function isSpanishState(stateCode) {
+    return SPANISH_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'ES_UNKNOWN';
 }
 
 function isUSState(stateCode) {
@@ -397,15 +425,16 @@ function isUSState(stateCode) {
 }
 
 function isUKState(stateCode) {
-    // UK states/counties are any that aren't US or German states
+    // UK states/counties are any that aren't US, German, or Spanish states
     // This is simpler than maintaining a comprehensive UK county list
-    return !isUSState(stateCode) && !isGermanState(stateCode) && stateCode && stateCode.trim() !== '';
+    return !isUSState(stateCode) && !isGermanState(stateCode) && !isSpanishState(stateCode) && stateCode && stateCode.trim() !== '';
 }
 
 // --- Hierarchical State Selection Functions ---
 function populateCountrySelector(allStateValues) {
     const hasUSStates = allStateValues.some(state => isUSState(state));
     const hasGermanStates = allStateValues.some(state => isGermanState(state));
+    const hasSpanishStates = allStateValues.some(state => isSpanishState(state));
     const hasUKStates = allStateValues.some(state => isUKState(state));
     
     countrySelector.innerHTML = '<option value="all">All Countries</option>';
@@ -422,6 +451,13 @@ function populateCountrySelector(allStateValues) {
         deOption.value = 'DE';
         deOption.textContent = 'Deutschland';
         countrySelector.appendChild(deOption);
+    }
+    
+    if (hasSpanishStates) {
+        const esOption = document.createElement('option');
+        esOption.value = 'ES';
+        esOption.textContent = 'España';
+        countrySelector.appendChild(esOption);
     }
     
     if (hasUKStates) {
@@ -441,6 +477,8 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
         filteredStates = allStateValues.filter(state => isUSState(state));
     } else if (selectedCountry === 'DE') {
         filteredStates = allStateValues.filter(state => isGermanState(state));
+    } else if (selectedCountry === 'ES') {
+        filteredStates = allStateValues.filter(state => isSpanishState(state));
     } else if (selectedCountry === 'UK') {
         filteredStates = allStateValues.filter(state => isUKState(state));
     }
@@ -461,6 +499,7 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
 function getSelectedCountryForState(stateCode) {
     if (isUSState(stateCode)) return 'US';
     if (isGermanState(stateCode)) return 'DE';
+    if (isSpanishState(stateCode)) return 'ES';
     if (isUKState(stateCode)) return 'UK';
     return 'all';
 }
@@ -683,6 +722,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(loc.state)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'ES' && isSpanishState(loc.state)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(loc.state)) {
                 countryMatch = true;
             }
@@ -714,6 +755,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(labState)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'ES' && isSpanishState(labState)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(labState)) {
                 countryMatch = true;
             }
@@ -741,6 +784,8 @@ function applyFilters(shouldUpdateView = false) {
             if (selectedCountry === 'US' && isUSState(reportState)) {
                 countryMatch = true;
             } else if (selectedCountry === 'DE' && isGermanState(reportState)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'ES' && isSpanishState(reportState)) {
                 countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(reportState)) {
                 countryMatch = true;
@@ -1186,12 +1231,12 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            fetch('http://127.0.0.1:8000/api/locations'),
-            fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            fetch('http://127.0.0.1:8000/api/inspection-reports')
+            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
+            // fetch('http://127.0.0.1:8000/api/locations'),
+            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            // fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
         if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
