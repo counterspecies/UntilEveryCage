@@ -12,7 +12,7 @@ The animal agriculture industry's power is built on a foundation of propaganda a
 * **Comprehensive Data:** Integrates multiple public datasets from government bodies worldwide, such as:
     * **Slaughterhouses & Processing Plants** (USDA in the U.S., BVL in Germany, FSA in the UK)
     * **Animal Research Laboratories** (APHIS in the U.S.)
-    * **Breeders, Dealers, & Exhibitors** (APHIS in the U.S.)
+    * **Farms/Breeders, Dealers, & Exhibitors** (APHIS in the U.S.)
 * **Detailed Facility Information:** Click on any pin to view detailed information, including names, addresses, certificate numbers, operational data, and license types.
 * **Powerful Filtering:** Filter the entire dataset by country and region (state, province, etc.) to focus on local and international infrastructure.
 * **Performance Optimized:** The map uses marker clustering to handle thousands of data points smoothly, and the backend utilizes compression for fast initial load times.

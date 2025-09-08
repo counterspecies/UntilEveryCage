@@ -306,6 +306,170 @@ function iconForType(type) {
     }
 }
 
+/**
+ * Maps facility type strings from the backend to icon types and display labels
+ */
+function mapFacilityType(facilityTypeString, establishmentName) {
+    if (!facilityTypeString) {
+        return { iconType: 'processing', displayLabel: 'Processing Facility', category: 'processing' };
+    }
+    
+    const type = facilityTypeString.toLowerCase();
+    console.log(facilityTypeString)
+    // Check for UK specific facility types (more specific classifications)
+    // Dairy farms
+    if (type.includes('dairy farm')) {
+        return { iconType: 'breeder', displayLabel: 'Dairy Farm', category: 'breeder' };
+    }
+    
+    // Intensive farms
+    if (type.includes('intensive pig farm')) {
+        return { iconType: 'breeder', displayLabel: 'Intensive Pig Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('intensive poultry farm')) {
+        return { iconType: 'breeder', displayLabel: 'Intensive Poultry Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('intensive sow pig farm')) {
+        return { iconType: 'breeder', displayLabel: 'Intensive Sow Pig Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('finishing unit')) {
+        return { iconType: 'breeder', displayLabel: 'Finishing Unit', category: 'breeder' };
+    }
+    
+    // Mixed farms (UK specific) - handle the new format
+    if (type.includes('mixed farm')) {
+        // Extract the farm types from the parentheses for a cleaner display
+        const match = type.match(/mixed farm \(([^)]+)\)/i);
+        if (match) {
+            return { iconType: 'breeder', displayLabel: `Mixed Farm (${match[1]})`, category: 'breeder' };
+        }
+        return { iconType: 'breeder', displayLabel: 'Mixed Farm', category: 'breeder' };
+    }
+    
+    // Specific slaughterhouse types (UK)
+    if (type.includes('cattle slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Cattle Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('pig slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Pig Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('poultry slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Poultry Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('sheep & lamb slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Sheep & Lamb Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('goat slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Goat Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('horse slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Horse Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('other mammal slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Other Mammal Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('large bird slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Large Bird Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('wild bird slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Wild Bird Slaughterhouse', category: 'slaughter' };
+    }
+    
+    if (type.includes('wild rabbit slaughterhouse')) {
+        return { iconType: 'slaughter', displayLabel: 'Wild Rabbit Slaughterhouse', category: 'slaughter' };
+    }
+    
+    // Mixed slaughterhouses (UK specific) - handle the new format
+    if (type.includes('mixed slaughterhouse')) {
+        // Extract the animal types from the parentheses for a cleaner display
+        const match = type.match(/mixed slaughterhouse \(([^)]+)\)/i);
+        if (match) {
+            return { iconType: 'slaughter', displayLabel: `Mixed Slaughterhouse (${match[1]})`, category: 'slaughter' };
+        }
+        return { iconType: 'slaughter', displayLabel: 'Mixed Slaughterhouse', category: 'slaughter' };
+    }
+    
+    // Check for general slaughter facilities (broader check)
+    if (type.includes('meat slaughter') || type.includes('slaughter')) {
+        return { iconType: 'slaughter', displayLabel: 'Slaughterhouse', category: 'slaughter' };
+    }
+    
+    // Check for specific Spanish facility types
+    if (type.includes('pig breeding farm')) {
+        return { iconType: 'breeder', displayLabel: 'Pig Breeding Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('pig farm')) {
+        return { iconType: 'breeder', displayLabel: 'Pig Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('poultry farm')) {
+        return { iconType: 'breeder', displayLabel: 'Poultry Farm', category: 'breeder' };
+    }
+    
+    if (type.includes('aquaculture')) {
+        return { iconType: 'breeder', displayLabel: 'Aquaculture Facility', category: 'breeder' };
+    }
+    
+    // Generic farm type detection for any remaining farm types
+    if (type.includes('farm') && !type.includes('slaughter')) {
+        // Extract specific animal type if mentioned
+        const animalTypes = ['dairy', 'pig', 'poultry', 'cattle', 'beef', 'sheep', 'goat', 'chicken', 'duck', 'turkey', 'lamb', 'horse', 'deer', 'rabbit', 'pheasant', 'quail', 'ostrich', 'emu', 'bison', 'buffalo', 'elk', 'goose'];
+        
+        for (const animal of animalTypes) {
+            if (type.includes(animal)) {
+                const displayName = animal.charAt(0).toUpperCase() + animal.slice(1);
+                return { iconType: 'breeder', displayLabel: `${displayName} Farm`, category: 'breeder' };
+            }
+        }
+        
+        // Check for intensive farms without specific animal type
+        if (type.includes('intensive')) {
+            return { iconType: 'breeder', displayLabel: 'Intensive Farm', category: 'breeder' };
+        }
+        
+        // If no specific animal type found, use "Farm" 
+        return { iconType: 'breeder', displayLabel: 'Farm', category: 'breeder' };
+    }
+    
+    // Check for breeding/production facilities
+    if (type.includes('animal production')) {
+        if (type.includes('hunting') || type.includes('game')) {
+            return { iconType: 'breeder', displayLabel: 'Game/Hunting Facility', category: 'breeder' };
+        } else {
+            return { iconType: 'breeder', displayLabel: 'Animal Farm', category: 'breeder' };
+        }
+    }
+    
+    // Check for exhibition facilities
+    if (type.includes('exhibition')) {
+        return { iconType: 'exhibitor', displayLabel: 'Exhibition Facility', category: 'exhibitor' };
+    }
+    
+    // Check for aquatic facilities
+    if (type.includes('aquatic')) {
+        if (type.includes('processing')) {
+            return { iconType: 'slaughter', displayLabel: 'Aquatic Processing Facility', category: 'slaughter' };
+        } else {
+            return { iconType: 'breeder', displayLabel: 'Aquatic Production Facility', category: 'breeder' };
+        }
+    }
+    
+    // Default to processing
+    return { iconType: 'processing', displayLabel: 'Processing Facility', category: 'processing' };
+}
+
 function updateAllMarkerIcons() {
     // Recreate live icons for the new scale
     refreshGlobalIcons();
@@ -406,10 +570,34 @@ const SPANISH_STATE_NAMES = {
     'ES_UNKNOWN': 'España (Unspecified)'
 };
 
+const FRENCH_STATE_NAMES = {
+    '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence', '05': 'Hautes-Alpes',
+    '06': 'Alpes-Maritimes', '07': 'Ardèche', '08': 'Ardennes', '09': 'Ariège', '10': 'Aube',
+    '11': 'Aude', '12': 'Aveyron', '13': 'Bouches-du-Rhône', '14': 'Calvados', '15': 'Cantal',
+    '16': 'Charente', '17': 'Charente-Maritime', '18': 'Cher', '19': 'Corrèze', '21': 'Côte-d\'Or',
+    '22': 'Côtes-d\'Armor', '23': 'Creuse', '24': 'Dordogne', '25': 'Doubs', '26': 'Drôme',
+    '27': 'Eure', '28': 'Eure-et-Loir', '29': 'Finistère', '30': 'Gard', '31': 'Haute-Garonne',
+    '32': 'Gers', '33': 'Gironde', '34': 'Hérault', '35': 'Ille-et-Vilaine', '36': 'Indre',
+    '37': 'Indre-et-Loire', '38': 'Isère', '39': 'Jura', '40': 'Landes', '41': 'Loir-et-Cher',
+    '42': 'Loire', '43': 'Haute-Loire', '44': 'Loire-Atlantique', '45': 'Loiret', '46': 'Lot',
+    '47': 'Lot-et-Garonne', '48': 'Lozère', '49': 'Maine-et-Loire', '50': 'Manche', '51': 'Marne',
+    '52': 'Haute-Marne', '53': 'Mayenne', '54': 'Meurthe-et-Moselle', '55': 'Meuse', '56': 'Morbihan',
+    '57': 'Moselle', '58': 'Nièvre', '59': 'Nord', '60': 'Oise', '61': 'Orne', '62': 'Pas-de-Calais',
+    '63': 'Puy-de-Dôme', '64': 'Pyrénées-Atlantiques', '65': 'Hautes-Pyrénées', '66': 'Pyrénées-Orientales',
+    '67': 'Bas-Rhin', '68': 'Haut-Rhin', '69': 'Rhône', '70': 'Haute-Saône', '71': 'Saône-et-Loire',
+    '72': 'Sarthe', '73': 'Savoie', '74': 'Haute-Savoie', '75': 'Paris', '76': 'Seine-Maritime',
+    '77': 'Seine-et-Marne', '78': 'Yvelines', '79': 'Deux-Sèvres', '80': 'Somme', '81': 'Tarn',
+    '82': 'Tarn-et-Garonne', '83': 'Var', '84': 'Vaucluse', '85': 'Vendée', '86': 'Vienne',
+    '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
+    '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne',
+    '95': 'Val-d\'Oise', '971': 'Guadeloupe', '972': 'Martinique', '973': 'Guyane',
+    '974': 'La Réunion', '976': 'Mayotte', 'FR_UNKNOWN': 'France (Unspecified)'
+};
+
 
 
 function getStateDisplayName(stateCode) {
-    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || SPANISH_STATE_NAMES[stateCode] || stateCode;
+    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || SPANISH_STATE_NAMES[stateCode] || FRENCH_STATE_NAMES[stateCode] || stateCode;
 }
 
 function isGermanState(stateCode) {
@@ -420,14 +608,22 @@ function isSpanishState(stateCode) {
     return SPANISH_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'ES_UNKNOWN';
 }
 
+function isFrenchState(stateCode) {
+    return FRENCH_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'FR_UNKNOWN';
+}
+
+function isFrenchLocation(location) {
+    return location.country === 'fr';
+}
+
 function isUSState(stateCode) {
     return US_STATE_NAMES.hasOwnProperty(stateCode);
 }
 
 function isUKState(stateCode) {
-    // UK states/counties are any that aren't US, German, or Spanish states
+    // UK states/counties are any that aren't US, German, Spanish, or French states
     // This is simpler than maintaining a comprehensive UK county list
-    return !isUSState(stateCode) && !isGermanState(stateCode) && !isSpanishState(stateCode) && stateCode && stateCode.trim() !== '';
+    return !isUSState(stateCode) && !isGermanState(stateCode) && !isSpanishState(stateCode) && !isFrenchState(stateCode) && stateCode && stateCode.trim() !== '';
 }
 
 // --- Hierarchical State Selection Functions ---
@@ -435,6 +631,7 @@ function populateCountrySelector(allStateValues) {
     const hasUSStates = allStateValues.some(state => isUSState(state));
     const hasGermanStates = allStateValues.some(state => isGermanState(state));
     const hasSpanishStates = allStateValues.some(state => isSpanishState(state));
+    const hasFrenchStates = allLocations.some(location => isFrenchLocation(location));
     const hasUKStates = allStateValues.some(state => isUKState(state));
     
     countrySelector.innerHTML = '<option value="all">All Countries</option>';
@@ -460,6 +657,13 @@ function populateCountrySelector(allStateValues) {
         countrySelector.appendChild(esOption);
     }
     
+    if (hasFrenchStates) {
+        const frOption = document.createElement('option');
+        frOption.value = 'FR';
+        frOption.textContent = 'France';
+        countrySelector.appendChild(frOption);
+    }
+    
     if (hasUKStates) {
         const ukOption = document.createElement('option');
         ukOption.value = 'UK';
@@ -479,28 +683,50 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
         filteredStates = allStateValues.filter(state => isGermanState(state));
     } else if (selectedCountry === 'ES') {
         filteredStates = allStateValues.filter(state => isSpanishState(state));
+    } else if (selectedCountry === 'FR') {
+        // Filter for actual French department codes
+        filteredStates = allStateValues.filter(state => isFrenchState(state));
     } else if (selectedCountry === 'UK') {
         filteredStates = allStateValues.filter(state => isUKState(state));
     }
     
     stateSelector.innerHTML = '<option value="all">All States/Provinces</option>';
     
-    // Sort states alphabetically by display name
-    filteredStates
-        .sort((a, b) => getStateDisplayName(a).localeCompare(getStateDisplayName(b)))
-        .forEach(state => {
-            const option = document.createElement('option');
-            option.value = state;
-            option.textContent = getStateDisplayName(state);
-            stateSelector.appendChild(option);
-        });
+    if (filteredStates.length === 0 && selectedCountry === 'FR') {
+        // Special message for France when no department codes are available in the data
+        const noStatesOption = document.createElement('option');
+        noStatesOption.value = 'none';
+        noStatesOption.textContent = '(Region data not available)';
+        noStatesOption.disabled = true;
+        stateSelector.appendChild(noStatesOption);
+    } else {
+        // Sort states alphabetically by display name
+        filteredStates
+            .sort((a, b) => getStateDisplayName(a).localeCompare(getStateDisplayName(b)))
+            .forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = getStateDisplayName(state);
+                stateSelector.appendChild(option);
+            });
+    }
 }
 
 function getSelectedCountryForState(stateCode) {
     if (isUSState(stateCode)) return 'US';
     if (isGermanState(stateCode)) return 'DE';
     if (isSpanishState(stateCode)) return 'ES';
+    if (isFrenchState(stateCode)) return 'FR';
     if (isUKState(stateCode)) return 'UK';
+    return 'all';
+}
+
+function getSelectedCountryForLocation(location) {
+    if (location.country === 'us') return 'US';
+    if (location.country === 'de') return 'DE';
+    if (location.country === 'es') return 'ES';
+    if (location.country === 'fr') return 'FR';
+    if (location.country === 'uk') return 'UK';
     return 'all';
 }
 
@@ -532,10 +758,30 @@ const downloadCsvBtn = document.getElementById('download-csv-btn');
 const loader = document.getElementById('loading-indicator');
 
 // CSV export helpers
-function normalizeUsdaRow(loc, isSlaughterhouse) {
+function normalizeUsdaRow(loc, facilityTypeParam) {
     const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${getStateDisplayName(loc.state?.trim() || '')} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
+    
+    // Determine the type label based on the parameter and the location data
+    let typeLabel;
+    if (typeof facilityTypeParam === 'string') {
+        switch (facilityTypeParam) {
+            case 'breeding': typeLabel = 'Production Facility'; break;
+            case 'exhibition': typeLabel = 'Exhibition Facility'; break;
+            default: typeLabel = 'Facility';
+        }
+    } else {
+        // Legacy boolean support
+        typeLabel = facilityTypeParam ? 'Slaughterhouse' : 'Processing';
+    }
+    
+    // If we have the type field, use the mapped display label
+    if (loc.type) {
+        const facilityMapping = mapFacilityType(loc.type, loc.establishment_name);
+        typeLabel = facilityMapping.displayLabel;
+    }
+    
     return {
-        Type: isSlaughterhouse ? 'Slaughterhouse' : 'Processing',
+        Type: typeLabel,
         Name: loc.establishment_name || '',
         State: getStateDisplayName(loc.state || ''),
         City: loc.city || '',
@@ -617,6 +863,8 @@ if (downloadCsvBtn) {
         const rows = [];
         if (includeSlaughter && Array.isArray(lf.slaughterhouses)) rows.push(...lf.slaughterhouses.map(loc => normalizeUsdaRow(loc, true)));
         if (includeProcessing && Array.isArray(lf.processingPlants)) rows.push(...lf.processingPlants.map(loc => normalizeUsdaRow(loc, false)));
+        if (includeBreeders && Array.isArray(lf.breedingFacilities)) rows.push(...lf.breedingFacilities.map(loc => normalizeUsdaRow(loc, 'breeding')));
+        if (includeExhibitors && Array.isArray(lf.exhibitionFacilities)) rows.push(...lf.exhibitionFacilities.map(loc => normalizeUsdaRow(loc, 'exhibition')));
         if (includeLabs && Array.isArray(lf.filteredLabs)) rows.push(...lf.filteredLabs.map(lab => normalizeLabRow(lab)));
         if (Array.isArray(lf.filteredInspections)) {
             lf.filteredInspections.forEach(r => {
@@ -724,6 +972,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'ES' && isSpanishState(loc.state)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'FR' && isFrenchLocation(loc)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(loc.state)) {
                 countryMatch = true;
             }
@@ -731,7 +981,12 @@ function applyFilters(shouldUpdateView = false) {
         if (!countryMatch) return false;
 
         // State filtering (within the selected country)
-        const stateMatch = isAllStatesView || loc.state === selectedState;
+        let stateMatch = isAllStatesView || loc.state === selectedState;
+        // Special handling for French locations - since current data doesn't have department codes,
+        // French locations match any state selection when France is the selected country
+        if (selectedCountry === 'FR') {
+            stateMatch = true;
+        }
         if (!stateMatch) return false;
 
         if (!searchTerm) return true; // If no search term, only filter by country and state
@@ -756,6 +1011,8 @@ function applyFilters(shouldUpdateView = false) {
             } else if (selectedCountry === 'DE' && isGermanState(labState)) {
                 countryMatch = true;
             } else if (selectedCountry === 'ES' && isSpanishState(labState)) {
+                countryMatch = true;
+            } else if (selectedCountry === 'FR' && isFrenchState(labState)) {
                 countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(labState)) {
                 countryMatch = true;
@@ -787,6 +1044,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'ES' && isSpanishState(reportState)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'FR' && isFrenchState(reportState)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(reportState)) {
                 countryMatch = true;
             }
@@ -805,20 +1064,37 @@ function applyFilters(shouldUpdateView = false) {
         return false;
     });
 
-    const slaughterhouses = filteredUsdaLocations.filter(loc => loc.slaughter && loc.slaughter.toLowerCase() === 'yes');
-    const processingPlants = filteredUsdaLocations.filter(loc => !loc.slaughter || loc.slaughter.toLowerCase() !== 'yes');
+    // Group facilities by category using the new type field
+    const slaughterhouses = filteredUsdaLocations.filter(loc => {
+        const facilityType = mapFacilityType(loc.type, loc.establishment_name);
+        return facilityType.category === 'slaughter';
+    });
+    const processingPlants = filteredUsdaLocations.filter(loc => {
+        const facilityType = mapFacilityType(loc.type, loc.establishment_name);
+        return facilityType.category === 'processing';
+    });
+    const breedingFacilities = filteredUsdaLocations.filter(loc => {
+        const facilityType = mapFacilityType(loc.type, loc.establishment_name);
+        return facilityType.category === 'breeder';
+    });
+    const exhibitionFacilities = filteredUsdaLocations.filter(loc => {
+        const facilityType = mapFacilityType(loc.type, loc.establishment_name);
+        return facilityType.category === 'exhibitor';
+    });
     
     // --- 3. Decide on clustering and update stats ---
     let totalMarkerCount = 0;
     if (slaughterhouseCheckbox.checked) totalMarkerCount += slaughterhouses.length;
     if (meatProcessingCheckbox.checked) totalMarkerCount += processingPlants.length;
+    if (breedersCheckbox.checked) totalMarkerCount += breedingFacilities.length;
+    if (exhibitorsCheckbox.checked) totalMarkerCount += exhibitionFacilities.length;
     if (testingLabsCheckbox.checked) totalMarkerCount += filteredLabs.length;
     totalMarkerCount += filteredInspections.length;
 
     const CLUSTER_THRESHOLD = 2800;
     const useClustering = totalMarkerCount >= CLUSTER_THRESHOLD;
 
-    updateStats(slaughterhouses.length, processingPlants.length, filteredLabs.length, filteredInspections.length);
+    updateStats(slaughterhouses.length, processingPlants.length, filteredLabs.length, filteredInspections.length, breedingFacilities.length, exhibitionFacilities.length);
 
     // --- 4. Plot markers and add to layers ---
     const markerBounds = [];
@@ -835,10 +1111,16 @@ function applyFilters(shouldUpdateView = false) {
     const inspectionLayer = useClustering ? unifiedClusterLayer : inspectionReportFeatureLayer;
 
     if (slaughterhouseCheckbox.checked) {
-        slaughterhouses.forEach(loc => addMarkerToLayer(plotMarker(loc, true), slaughterLayer));
+        slaughterhouses.forEach(loc => addMarkerToLayer(plotMarker(loc, 'usda-facility'), slaughterLayer));
     }
     if (meatProcessingCheckbox.checked) {
-        processingPlants.forEach(loc => addMarkerToLayer(plotMarker(loc, false), processingLayer));
+        processingPlants.forEach(loc => addMarkerToLayer(plotMarker(loc, 'usda-facility'), processingLayer));
+    }
+    if (breedersCheckbox.checked) {
+        breedingFacilities.forEach(loc => addMarkerToLayer(plotMarker(loc, 'usda-facility'), slaughterLayer));
+    }
+    if (exhibitorsCheckbox.checked) {
+        exhibitionFacilities.forEach(loc => addMarkerToLayer(plotMarker(loc, 'usda-facility'), slaughterLayer));
     }
     if (testingLabsCheckbox.checked) {
         filteredLabs.forEach(lab => addMarkerToLayer(plotMarker(lab, 'lab'), labLayer));
@@ -849,6 +1131,8 @@ function applyFilters(shouldUpdateView = false) {
     window.__lastFiltered = {
         slaughterhouses,
         processingPlants,
+        breedingFacilities,
+        exhibitionFacilities,
         filteredLabs,
         filteredInspections
     };
@@ -899,12 +1183,18 @@ function plotMarker(data, type) {
         }
         
         popupContent = buildInspectionReportPopup(data);
-    } else { // USDA Location
+    } else if (type === 'usda-facility') { // USDA Location with new facility types
+        lat = data.latitude;
+        lng = data.longitude;
+        const facilityMapping = mapFacilityType(data.type, data.establishment_name);
+        iconType = facilityMapping.iconType;
+        popupContent = buildLocationPopup(data, facilityMapping.displayLabel);
+    } else { // Legacy fallback for old USDA locations
         lat = data.latitude;
         lng = data.longitude;
         const isSlaughterhouse = type === true;
         iconType = isSlaughterhouse ? 'slaughter' : 'processing';
-        popupContent = buildUsdaPopup(data, isSlaughterhouse);
+        popupContent = buildLocationPopup(data, isSlaughterhouse ? 'Slaughterhouse' : 'Processing Facility');
     }
 
     if (lat && lng) {
@@ -917,10 +1207,12 @@ function plotMarker(data, type) {
     return null; // Return null if no coordinates
 }
 
-function updateStats(slaughterhouses, processing, labs, inspections) {
+function updateStats(slaughterhouses, processing, labs, inspections, breeding, exhibition) {
     let stats = [];
     if (slaughterhouseCheckbox.checked && slaughterhouses > 0 ) stats.push(`${slaughterhouses.toLocaleString()} Slaughterhouses`);
     if (meatProcessingCheckbox.checked && processing > 0) stats.push(`${processing.toLocaleString()} Processing Plants`);
+    if (breedersCheckbox.checked && breeding > 0) stats.push(`${breeding.toLocaleString()} Production Facilities`);
+    if (exhibitorsCheckbox.checked && exhibition > 0) stats.push(`${exhibition.toLocaleString()} Exhibition Facilities`);
     if (testingLabsCheckbox.checked && labs > 0) stats.push(`${labs.toLocaleString()} Animal Labs`);
     if ((breedersCheckbox.checked || dealersCheckbox.checked || exhibitorsCheckbox.checked) && inspections > 0) stats.push(`${inspections.toLocaleString()} Other Locations`);
     
@@ -932,9 +1224,10 @@ function updateStats(slaughterhouses, processing, labs, inspections) {
 // =============================================================================
 
 // REPLACE this function in app.js
-function buildUsdaPopup(location, isSlaughterhouse) {
+function buildLocationPopup(location, facilityTypeLabel) {
     const establishmentName = location.establishment_name || 'Unknown Name';
-    const locationTypeText = isSlaughterhouse ? "Slaughterhouse" : "Processing-Only Facility";
+    const locationTypeText = typeof facilityTypeLabel === 'string' ? facilityTypeLabel : 
+                            (facilityTypeLabel ? "Slaughterhouse" : "Processing-Only Facility");
     const fullAddress = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${getStateDisplayName(location.state.trim())} ${location.zip}` : 'Address not available';
     const establishmentId = location.establishment_id;
     const grantDate = location.grant_date;
@@ -942,19 +1235,7 @@ function buildUsdaPopup(location, isSlaughterhouse) {
     const dbas = location.dbas;
     const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
 
-    // Helper function to create the volume bars
-    const createVolumeBars = (category) => {
-        if (!category || category === "0.0") return '';
-        const level = parseInt(category.charAt(0));
-        let bars = '';
-        for (let i = 1; i <= 5; i++) {
-            bars += `<div class="volume-indicator-bar ${i <= level ? 'filled' : ''}"></div>`;
-        }
-        return `<div class="volume-indicator">${bars}</div>`;
-    };
-    
     let animals_processed_monthly_text = "N/A";
-    let processingVolumeHtml = createVolumeBars(location.processing_volume_category);
     if (location.processing_volume_category) {
         switch (location.processing_volume_category) {
             case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds/month."; break;
@@ -977,9 +1258,12 @@ function buildUsdaPopup(location, isSlaughterhouse) {
                                animals_processed_monthly_text !== "N/A";
 
     let slaughterText = "";
-    if (isSlaughterhouse) {
+    const isSlaughterFacility = typeof facilityTypeLabel === 'string' ? 
+        (facilityTypeLabel.toLowerCase().includes('slaughter') || facilityTypeLabel.toLowerCase().includes('aquatic processing')) :
+        facilityTypeLabel === true;
+    
+    if (isSlaughterFacility) {
         let animals_slaughtered_yearly_text = "N/A";
-        let slaughterVolumeHtml = createVolumeBars(location.slaughter_volume_category);
         if (location.slaughter_volume_category) {
             switch (location.slaughter_volume_category) {
                 case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals/year."; break;
@@ -1099,11 +1383,24 @@ function buildInspectionReportPopup(report) {
 // Country selector event handler - updates state dropdown when country changes
 countrySelector.addEventListener('change', () => {
     const selectedCountry = countrySelector.value;
-    const allStateValues = [...new Set([
+    let allStateValues = [...new Set([
         ...allLocations.map(loc => loc.state),
         ...allLabLocations.map(lab => getStateFromCityStateZip(lab['City-State-Zip'])),
         ...allInspectionReports.map(report => report['State'])
     ].filter(Boolean))];
+    
+    // Special handling for French locations since the current data doesn't include department codes
+    // This filters for any actual French department codes that might exist in the data
+    if (selectedCountry === 'FR') {
+        // Get any actual French state codes from the data
+        const frenchStatesInData = allStateValues.filter(state => isFrenchState(state));
+        if (frenchStatesInData.length > 0) {
+            allStateValues = frenchStatesInData;
+        } else {
+            // If no department codes found, indicate that regions are not available in current data
+            allStateValues = [];
+        }
+    }
     
     populateStateSelector(allStateValues, selectedCountry);
     applyFilters(true);
@@ -1219,7 +1516,6 @@ map.on('popupopen', function (e) {
 //  APPLICATION INITIALIZATION
 // =============================================================================
 
-// REPLACE the existing initializeApp function with this one
 async function initializeApp() {
     let urlParams; // Declare urlParams here, in the higher scope
     let loaderTimeout;
@@ -1231,15 +1527,15 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            // fetch('http://127.0.0.1:8000/api/locations'),
-            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            // fetch('http://127.0.0.1:8000/api/inspection-reports')
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
+            fetch('http://127.0.0.1:8000/api/locations'),
+            fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
-        if (!usdaResponse.ok) throw new Error(`USDA data request failed`);
+        if (!usdaResponse.ok) throw new Error(`Data request failed`);
         if (!aphisResponse.ok) throw new Error(`APHIS data request failed`);
         if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed`);
 
@@ -1301,12 +1597,24 @@ async function initializeApp() {
         // If a specific country is pre-selected or a specific state is requested, 
         // make sure state selector is properly filtered
         if (urlCountry !== 'all') {
-            populateStateSelector(allStateValues, urlCountry);
+            let stateValuesForCountry = allStateValues;
+            // Special handling for French locations - filter for actual French department codes
+            if (urlCountry === 'FR') {
+                const frenchStatesInData = allStateValues.filter(state => isFrenchState(state));
+                stateValuesForCountry = frenchStatesInData.length > 0 ? frenchStatesInData : [];
+            }
+            populateStateSelector(stateValuesForCountry, urlCountry);
         } else if (urlState !== 'all') {
             const stateCountry = getSelectedCountryForState(urlState);
             if (stateCountry !== 'all') {
                 countrySelector.value = stateCountry;
-                populateStateSelector(allStateValues, stateCountry);
+                let stateValuesForCountry = allStateValues;
+                // Special handling for French locations - filter for actual French department codes
+                if (stateCountry === 'FR') {
+                    const frenchStatesInData = allStateValues.filter(state => isFrenchState(state));
+                    stateValuesForCountry = frenchStatesInData.length > 0 ? frenchStatesInData : [];
+                }
+                populateStateSelector(stateValuesForCountry, stateCountry);
             }
         }
         

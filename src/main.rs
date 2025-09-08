@@ -106,7 +106,7 @@ async fn read_locations_from_csv(country: Option<String>) -> Result<Vec<Location
                     establishment_name: record.establishment_name,
                     latitude: record.latitude,
                     longitude: record.longitude,
-                    activities: record.activities,
+                    r#type: record.activities,
                     state: record.state,
                     city: record.city,
                     street: record.street,
@@ -167,7 +167,8 @@ struct LocationResponse {
     establishment_name: String,
     latitude: f64,
     longitude: f64,
-    activities: String,
+    #[serde(rename = "type")]
+    r#type: String,
     state: String,
     city: String,
     street: String,

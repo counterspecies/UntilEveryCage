@@ -30,6 +30,7 @@ pub struct Location {
     pub zip: String,
     pub phone: String,
     pub grant_date: String,
+    #[serde(rename = "type")]
     pub activities: String,
     pub dbas: String,
     pub district: String,
