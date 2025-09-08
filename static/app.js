@@ -315,7 +315,6 @@ function mapFacilityType(facilityTypeString, establishmentName) {
     }
     
     const type = facilityTypeString.toLowerCase();
-    console.log(facilityTypeString)
     // Check for UK specific facility types (more specific classifications)
     // Dairy farms
     if (type.includes('dairy farm')) {
@@ -351,7 +350,6 @@ function mapFacilityType(facilityTypeString, establishmentName) {
     
     // Specific slaughterhouse types (UK)
     if (type.includes('cattle slaughterhouse')) {
-        console.log('here')
         return { iconType: 'slaughter', displayLabel: 'Cattle Slaughterhouse', category: 'slaughter' };
     }
     
@@ -998,7 +996,11 @@ function applyFilters(shouldUpdateView = false) {
         const animalMatch = (loc.animals_slaughtered && loc.animals_slaughtered.toLowerCase().includes(effectiveSearchTerm)) ||
                             (loc.animals_processed && loc.animals_processed.toLowerCase().includes(effectiveSearchTerm));
 
-        return nameMatch || animalMatch;
+        // Add facility type label search
+        const facilityType = mapFacilityType(loc.type, loc.establishment_name);
+        const facilityTypeMatch = facilityType.displayLabel && facilityType.displayLabel.toLowerCase().includes(searchTerm);
+
+        return nameMatch || animalMatch || facilityTypeMatch;
     });
 
     const filteredLabs = allLabLocations.filter(lab => {
@@ -1029,8 +1031,15 @@ function applyFilters(shouldUpdateView = false) {
 
         const nameMatch = lab['Account Name'] && lab['Account Name'].toLowerCase().includes(searchTerm);
         const animalMatch = lab['Animals Tested On'] && lab['Animals Tested On'].toLowerCase().includes(searchTerm);
+        
+        // Add facility type label search for labs
+        const facilityTypeMatch = 'research laboratory'.includes(searchTerm) || 
+                                 'laboratory'.includes(searchTerm) || 
+                                 'research facility'.includes(searchTerm) ||
+                                 'testing facility'.includes(searchTerm) ||
+                                 'lab'.includes(searchTerm);
 
-        return nameMatch || animalMatch;
+        return nameMatch || animalMatch || facilityTypeMatch;
     });
 
     const filteredInspections = allInspectionReports.filter(report => {
@@ -1056,9 +1065,20 @@ function applyFilters(shouldUpdateView = false) {
         // State filtering (within the selected country)
         const stateMatch = isAllStatesView || reportState === selectedState;
         const nameMatch = !searchTerm || (report['Account Name'] && report['Account Name'].toLowerCase().includes(searchTerm));
-        if (!stateMatch || !nameMatch) return false;
-
+        
+        // Add facility type search for inspection reports
         const licenseType = report['License Type'] || '';
+        let facilityTypeMatch = false;
+        if (searchTerm) {
+            facilityTypeMatch = licenseType.toLowerCase().includes(searchTerm) ||
+                               ('breeder'.includes(searchTerm) && licenseType === 'Class A - Breeder') ||
+                               ('dealer'.includes(searchTerm) && licenseType === 'Class B - Dealer') ||
+                               ('exhibitor'.includes(searchTerm) && licenseType === 'Class C - Exhibitor');
+        }
+        
+        const searchMatch = !searchTerm || nameMatch || facilityTypeMatch;
+        if (!stateMatch || !searchMatch) return false;
+
         if (showBreeders && licenseType === 'Class A - Breeder') return true;
         if (showDealers && licenseType === 'Class B - Dealer') return true;
         if (showExhibitors && licenseType === 'Class C - Exhibitor') return true;
