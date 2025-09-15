@@ -1,5 +1,5 @@
 // Until Every Cage is Empty
-// Copyright (C) 2025 Eli Perez 
+// Copyright (C) 2025 Eli Perez
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Contact the developer directly at untileverycageproject@protonmail.com
-use serde::Serialize;
 use serde::Deserialize;
+use serde::Serialize;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Location {
@@ -37,7 +37,7 @@ pub struct Location {
     pub circuit: String,
     pub size: String,
     pub latitude: f64,
-    pub longitude: f64, 
+    pub longitude: f64,
     pub county: String,
     pub fips_code: String,
     pub meat_exemption_custom_slaughter: String,
@@ -131,7 +131,7 @@ pub fn get_processed_animals(location: &Location) -> String {
 
     // Helper closure to check the Option<String> fields safely
     let mut add_if_processed = |field: &str, name: &'static str| {
-        if field == "Yes"  {
+        if field == "Yes" {
             processed_animals.push(name);
         }
     };
@@ -145,7 +145,10 @@ pub fn get_processed_animals(location: &Location) -> String {
     add_if_processed(&location.deer_processing, "Deer");
     add_if_processed(&location.elk_processing, "Elk");
     add_if_processed(&location.goat_processing, "Goat");
-    add_if_processed(&location.other_voluntary_livestock_processing, "Other Voluntary Livestock");
+    add_if_processed(
+        &location.other_voluntary_livestock_processing,
+        "Other Voluntary Livestock",
+    );
     add_if_processed(&location.rabbit_processing, "Rabbit");
     add_if_processed(&location.reindeer_processing, "Reindeer");
     add_if_processed(&location.sheep_processing, "Sheep");
@@ -159,7 +162,10 @@ pub fn get_processed_animals(location: &Location) -> String {
     add_if_processed(&location.ratite_processing, "Ratite (Ostrich/Emu)");
     add_if_processed(&location.turkey_processing, "Turkey");
     add_if_processed(&location.exotic_poultry_processing, "Exotic Poultry");
-    add_if_processed(&location.other_voluntary_poultry_processing, "Other Voluntary Poultry");
+    add_if_processed(
+        &location.other_voluntary_poultry_processing,
+        "Other Voluntary Poultry",
+    );
 
     if processed_animals.is_empty() {
         "N/A".to_string()
@@ -167,84 +173,116 @@ pub fn get_processed_animals(location: &Location) -> String {
         processed_animals.join(", ")
     }
 }
- 
+
 // --- UPDATED to use more common names ---
 pub fn get_slaughtered_animals(location: &Location) -> String {
     let mut killed_animals: Vec<&str> = Vec::new();
 
-    if location.beef_cow_slaughter == "Yes" 
-    || location.steer_slaughter == "Yes" 
-    || location.heifer_slaughter == "Yes" 
-    || location.bull_stag_slaughter == "Yes" 
-    || location.dairy_cow_slaughter == "Yes" { 
-        killed_animals.push("Cattle (Cows, Bulls)"); 
+    if location.beef_cow_slaughter == "Yes"
+        || location.steer_slaughter == "Yes"
+        || location.heifer_slaughter == "Yes"
+        || location.bull_stag_slaughter == "Yes"
+        || location.dairy_cow_slaughter == "Yes"
+    {
+        killed_animals.push("Cattle (Cows, Bulls)");
     }
-    if location.heavy_calf_slaughter == "Yes" 
-    || location.bob_veal_slaughter == "Yes" 
-    || location.formula_fed_veal_slaughter == "Yes" 
-    || location.non_formula_fed_veal_slaughter == "Yes" {
+    if location.heavy_calf_slaughter == "Yes"
+        || location.bob_veal_slaughter == "Yes"
+        || location.formula_fed_veal_slaughter == "Yes"
+        || location.non_formula_fed_veal_slaughter == "Yes"
+    {
         killed_animals.push("Calves (Veal)");
     }
-    if location.market_swine_slaughter == "Yes" 
-    || location.sow_slaughter == "Yes" 
-    || location.roaster_swine_slaughter == "Yes" 
-    || location.boar_stag_swine_slaughter == "Yes" 
-    || location.stag_swine_slaughter == "Yes" 
-    || location.feral_swine_slaughter == "Yes" {
+    if location.market_swine_slaughter == "Yes"
+        || location.sow_slaughter == "Yes"
+        || location.roaster_swine_slaughter == "Yes"
+        || location.boar_stag_swine_slaughter == "Yes"
+        || location.stag_swine_slaughter == "Yes"
+        || location.feral_swine_slaughter == "Yes"
+    {
         killed_animals.push("Pigs");
     }
-    if location.goat_slaughter == "Yes" 
-    || location.young_goat_slaughter == "Yes" 
-    || location.adult_goat_slaughter == "Yes" {
+    if location.goat_slaughter == "Yes"
+        || location.young_goat_slaughter == "Yes"
+        || location.adult_goat_slaughter == "Yes"
+    {
         killed_animals.push("Goats");
     }
-    if location.sheep_slaughter == "Yes" 
-    || location.lamb_slaughter == "Yes" {
+    if location.sheep_slaughter == "Yes" || location.lamb_slaughter == "Yes" {
         killed_animals.push("Sheep & Lambs");
     }
-    if location.deer_reindeer_slaughter == "Yes" { killed_animals.push("Deer & Reindeer"); }
-    if location.antelope_slaughter == "Yes" { killed_animals.push("Antelope"); }
-    if location.elk_slaughter == "Yes" { killed_animals.push("Elk"); }
-    if location.bison_slaughter == "Yes" 
-    || location.buffalo_slaughter == "Yes" 
-    || location.water_buffalo_slaughter == "Yes" 
-    || location.cattalo_slaughter == "Yes" {
+    if location.deer_reindeer_slaughter == "Yes" {
+        killed_animals.push("Deer & Reindeer");
+    }
+    if location.antelope_slaughter == "Yes" {
+        killed_animals.push("Antelope");
+    }
+    if location.elk_slaughter == "Yes" {
+        killed_animals.push("Elk");
+    }
+    if location.bison_slaughter == "Yes"
+        || location.buffalo_slaughter == "Yes"
+        || location.water_buffalo_slaughter == "Yes"
+        || location.cattalo_slaughter == "Yes"
+    {
         killed_animals.push("Bison & Buffalo");
     }
-    if location.yak_slaughter == "Yes" { killed_animals.push("Yak"); }
-    if location.other_voluntary_livestock_slaughter == "Yes" { killed_animals.push("Other Livestock"); }
-    if location.rabbit_slaughter == "Yes" { killed_animals.push("Rabbits"); }
-    
+    if location.yak_slaughter == "Yes" {
+        killed_animals.push("Yak");
+    }
+    if location.other_voluntary_livestock_slaughter == "Yes" {
+        killed_animals.push("Other Livestock");
+    }
+    if location.rabbit_slaughter == "Yes" {
+        killed_animals.push("Rabbits");
+    }
+
     // --- Poultry ---
-    if location.young_chicken_slaughter == "Yes" 
-    || location.light_fowl_slaughter == "Yes" 
-    || location.heavy_fowl_slaughter == "Yes" 
-    || location.capon_slaughter == "Yes" {
+    if location.young_chicken_slaughter == "Yes"
+        || location.light_fowl_slaughter == "Yes"
+        || location.heavy_fowl_slaughter == "Yes"
+        || location.capon_slaughter == "Yes"
+    {
         killed_animals.push("Chickens");
     }
-    if location.young_turkey_slaughter == "Yes" 
-    || location.young_breeder_turkey_slaughter == "Yes" 
-    || location.old_breeder_turkey_slaughter == "Yes" 
-    || location.fryer_roaster_turkey_slaughter == "Yes" {
+    if location.young_turkey_slaughter == "Yes"
+        || location.young_breeder_turkey_slaughter == "Yes"
+        || location.old_breeder_turkey_slaughter == "Yes"
+        || location.fryer_roaster_turkey_slaughter == "Yes"
+    {
         killed_animals.push("Turkeys");
     }
-    if location.duck_slaughter == "Yes" { killed_animals.push("Ducks"); }
-    if location.goose_slaughter == "Yes" { killed_animals.push("Geese"); }
-    if location.pheasant_slaughter == "Yes" { killed_animals.push("Pheasants"); }
-    if location.quail_slaughter == "Yes" { killed_animals.push("Quail"); }
-    if location.guinea_slaughter == "Yes" { killed_animals.push("Guinea Fowl"); }
-    if location.ostrich_slaughter == "Yes" 
-    || location.emu_slaughter == "Yes" 
-    || location.rhea_slaughter == "Yes" {
+    if location.duck_slaughter == "Yes" {
+        killed_animals.push("Ducks");
+    }
+    if location.goose_slaughter == "Yes" {
+        killed_animals.push("Geese");
+    }
+    if location.pheasant_slaughter == "Yes" {
+        killed_animals.push("Pheasants");
+    }
+    if location.quail_slaughter == "Yes" {
+        killed_animals.push("Quail");
+    }
+    if location.guinea_slaughter == "Yes" {
+        killed_animals.push("Guinea Fowl");
+    }
+    if location.ostrich_slaughter == "Yes"
+        || location.emu_slaughter == "Yes"
+        || location.rhea_slaughter == "Yes"
+    {
         killed_animals.push("Ratites (Ostrich, Emu, etc.)");
     }
-    if location.squab_slaughter == "Yes" { killed_animals.push("Pigeons (Squab)"); }
-    if location.other_voluntary_poultry_slaughter == "Yes" { killed_animals.push("Other Poultry"); }
+    if location.squab_slaughter == "Yes" {
+        killed_animals.push("Pigeons (Squab)");
+    }
+    if location.other_voluntary_poultry_slaughter == "Yes" {
+        killed_animals.push("Other Poultry");
+    }
 
     // Join the collected names with a comma and space
     killed_animals.join(", ")
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AphisReport {
@@ -297,7 +335,6 @@ pub struct AphisReport {
     #[serde(rename = "Animals Tested On")]
     pub animals_tested: Option<String>,
 }
-
 
 // This function takes a reference to an AphisReport and returns the formatted string.
 pub fn get_tested_animals(report: &AphisReport) -> String {
