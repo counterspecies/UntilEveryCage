@@ -18,7 +18,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Location {
     pub establishment_id: String,
     pub establishment_number: String,
