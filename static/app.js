@@ -14,14 +14,56 @@
  * * Main Dependencies: Leaflet.js, Leaflet.markercluster
  */
 
+// Import constants and configuration
+import { 
+    BASE_ICON_SPECS, 
+    PIN_SCALES, 
+    API_ENDPOINTS,
+    MAP_CONFIG,
+    initializeDOMElements,
+    EXTERNAL_URLS
+} from './modules/constants.js';
+
+// Import geographic utilities
+import { 
+    getStateDisplayName,
+    isUSState,
+    isGermanState,
+    isSpanishState,
+    isFrenchState,
+    isFrenchLocation,
+    isDanishLocation,
+    isUKState,
+    getSelectedCountryForState,
+    getSelectedCountryForLocation,
+    normalizeUsdaRow,
+    normalizeLabRow,
+    normalizeInspectionRow,
+    toCsv,
+    downloadText
+} from './modules/geoUtils.js';
+
+// Import icon management utilities
+import { 
+    createScaledIcon,
+    getCurrentScale,
+    getCurrentScaleIndex,
+    setCurrentScaleIndex,
+    cycleToNextScale,
+    refreshGlobalIcons,
+    iconForType,
+    mapFacilityType,
+    updateAllMarkerIcons
+} from './modules/iconUtils.js';
+
 // =============================================================================
 //  MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
 
 
 // Define the absolute geographical boundaries of the map to prevent scrolling too far.
-const southWest = L.latLng(-90, -180);
-const northEast = L.latLng(90, 180);
+const southWest = L.latLng(MAP_CONFIG.southWest[0], MAP_CONFIG.southWest[1]);
+const northEast = L.latLng(MAP_CONFIG.northEast[0], MAP_CONFIG.northEast[1]);
 const worldBounds = L.latLngBounds(southWest, northEast);
 
 // Create the main Leaflet map instance, centered on the continental US.
@@ -29,7 +71,7 @@ const map = L.map('map', {
     //maxBounds: worldBounds,
     //maxBoundsViscosity: 0.0, // Makes the map "bounce back" at the edges.
     zoomControl: false // Disable default zoom control, we'll add it to bottom
-}).setView([31.42841, -49.57343], 2).setMinZoom(2).setZoom(2);
+}).setView(MAP_CONFIG.center, MAP_CONFIG.zoom).setMinZoom(MAP_CONFIG.minZoom).setZoom(MAP_CONFIG.zoom);
 
 // =============================================================================
 //  WORLD WRAPPING FUNCTIONALITY
@@ -217,280 +259,10 @@ map.on('locationerror', e => {
 
 
 // =============================================================================
-//  ICONS AND LAYER GROUPS
+//  LAYER GROUPS
 // =============================================================================
 
-// Scalable icon system
-const BASE_ICON_SPECS = {
-    slaughter: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    },
-    processing: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    },
-    lab: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    },
-    breeder: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    },
-    dealer: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    },
-    exhibitor: {
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-    }
-};
 
-const PIN_SCALES = [0.5, 0.75, 1];
-let currentPinScaleIndex = PIN_SCALES.indexOf(1) !== -1 ? PIN_SCALES.indexOf(1) : PIN_SCALES.length - 1;
-
-const round = (n) => Math.max(1, Math.round(n));
-function createScaledIcon(spec, scale) {
-    const sz = spec.iconSize;
-    const sh = spec.shadowSize;
-    const ia = spec.iconAnchor;
-    const pa = spec.popupAnchor;
-    const s = scale;
-    return L.icon({
-        iconUrl: spec.iconUrl,
-        shadowUrl: spec.shadowUrl,
-        iconSize: [round(sz[0] * s), round(sz[1] * s)],
-        shadowSize: [round(sh[0] * s), round(sh[1] * s)],
-        iconAnchor: [round(ia[0] * s), round(ia[1] * s)],
-        popupAnchor: [round(pa[0] * s), round(pa[1] * s)]
-    });
-}
-
-function getCurrentScale() { return PIN_SCALES[currentPinScaleIndex]; }
-
-// Live icon instances used when plotting markers
-let slaughterhouseIcon = createScaledIcon(BASE_ICON_SPECS.slaughter, getCurrentScale());
-let processingIcon = createScaledIcon(BASE_ICON_SPECS.processing, getCurrentScale());
-let labIcon = createScaledIcon(BASE_ICON_SPECS.lab, getCurrentScale());
-let breederIcon = createScaledIcon(BASE_ICON_SPECS.breeder, getCurrentScale());
-let dealerIcon = createScaledIcon(BASE_ICON_SPECS.dealer, getCurrentScale());
-let exhibitorIcon = createScaledIcon(BASE_ICON_SPECS.exhibitor, getCurrentScale());
-
-function refreshGlobalIcons() {
-    const s = getCurrentScale();
-    slaughterhouseIcon = createScaledIcon(BASE_ICON_SPECS.slaughter, s);
-    processingIcon = createScaledIcon(BASE_ICON_SPECS.processing, s);
-    labIcon = createScaledIcon(BASE_ICON_SPECS.lab, s);
-    breederIcon = createScaledIcon(BASE_ICON_SPECS.breeder, s);
-    dealerIcon = createScaledIcon(BASE_ICON_SPECS.dealer, s);
-    exhibitorIcon = createScaledIcon(BASE_ICON_SPECS.exhibitor, s);
-}
-
-function iconForType(type) {
-    switch (type) {
-        case 'slaughter': return slaughterhouseIcon;
-        case 'processing': return processingIcon;
-        case 'lab': return labIcon;
-        case 'breeder': return breederIcon;
-        case 'dealer': return dealerIcon;
-        case 'exhibitor': return exhibitorIcon;
-        default: return processingIcon;
-    }
-}
-
-/**
- * Maps facility type strings from the backend to icon types and display labels
- */
-function mapFacilityType(facilityTypeString, establishmentName) {
-    if (!facilityTypeString) {
-        return { iconType: 'processing', displayLabel: 'Processing Facility', category: 'processing' };
-    }
-    
-    const type = facilityTypeString.toLowerCase();
-    // Check for UK specific facility types (more specific classifications)
-    // Dairy farms
-    if (type.includes('dairy farm')) {
-        return { iconType: 'breeder', displayLabel: 'Dairy Farm', category: 'breeder' };
-    }
-    
-    // Intensive farms
-    if (type.includes('intensive pig farm')) {
-        return { iconType: 'breeder', displayLabel: 'Intensive Pig Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('intensive poultry farm')) {
-        return { iconType: 'breeder', displayLabel: 'Intensive Poultry Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('intensive sow pig farm')) {
-        return { iconType: 'breeder', displayLabel: 'Intensive Sow Pig Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('finishing unit')) {
-        return { iconType: 'breeder', displayLabel: 'Finishing Unit', category: 'breeder' };
-    }
-    
-    // Mixed farms (UK specific) - handle the new format
-    if (type.includes('mixed farm')) {
-        // Extract the farm types from the parentheses for a cleaner display
-        const match = type.match(/mixed farm \(([^)]+)\)/i);
-        if (match) {
-            return { iconType: 'breeder', displayLabel: `Mixed Farm (${match[1]})`, category: 'breeder' };
-        }
-        return { iconType: 'breeder', displayLabel: 'Mixed Farm', category: 'breeder' };
-    }
-    
-    // Specific slaughterhouse types (UK)
-    if (type.includes('cattle slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Cattle Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('pig slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Pig Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('poultry slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Poultry Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('sheep & lamb slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Sheep & Lamb Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('goat slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Goat Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('horse slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Horse Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('other mammal slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Other Mammal Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('large bird slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Large Bird Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('wild bird slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Wild Bird Slaughterhouse', category: 'slaughter' };
-    }
-    
-    if (type.includes('wild rabbit slaughterhouse')) {
-        return { iconType: 'slaughter', displayLabel: 'Wild Rabbit Slaughterhouse', category: 'slaughter' };
-    }
-    
-    // Mixed slaughterhouses (UK specific) - handle the new format
-    if (type.includes('mixed slaughterhouse')) {
-        // Extract the animal types from the parentheses for a cleaner display
-        const match = type.match(/mixed slaughterhouse \(([^)]+)\)/i);
-        if (match) {
-            return { iconType: 'slaughter', displayLabel: `Mixed Slaughterhouse (${match[1]})`, category: 'slaughter' };
-        }
-        return { iconType: 'slaughter', displayLabel: 'Mixed Slaughterhouse', category: 'slaughter' };
-    }
-    
-    // Check for general slaughter facilities (broader check)
-    if (type.includes('meat slaughter') || type.includes('slaughter')) {
-        return { iconType: 'slaughter', displayLabel: 'Slaughterhouse', category: 'slaughter' };
-    }
-    
-    // Check for specific Spanish facility types
-    if (type.includes('pig breeding farm')) {
-        return { iconType: 'breeder', displayLabel: 'Pig Breeding Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('pig farm')) {
-        return { iconType: 'breeder', displayLabel: 'Pig Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('poultry farm')) {
-        return { iconType: 'breeder', displayLabel: 'Poultry Farm', category: 'breeder' };
-    }
-    
-    if (type.includes('aquaculture')) {
-        return { iconType: 'breeder', displayLabel: 'Aquaculture Facility', category: 'breeder' };
-    }
-    
-    // Generic farm type detection for any remaining farm types
-    if (type.includes('farm') && !type.includes('slaughter')) {
-        // Extract specific animal type if mentioned
-        const animalTypes = ['dairy', 'pig', 'poultry', 'cattle', 'beef', 'sheep', 'goat', 'chicken', 'duck', 'turkey', 'lamb', 'horse', 'deer', 'rabbit', 'pheasant', 'quail', 'ostrich', 'emu', 'bison', 'buffalo', 'elk', 'goose'];
-        
-        for (const animal of animalTypes) {
-            if (type.includes(animal)) {
-                const displayName = animal.charAt(0).toUpperCase() + animal.slice(1);
-                return { iconType: 'breeder', displayLabel: `${displayName} Farm`, category: 'breeder' };
-            }
-        }
-        
-        // Check for intensive farms without specific animal type
-        if (type.includes('intensive')) {
-            return { iconType: 'breeder', displayLabel: 'Intensive Farm', category: 'breeder' };
-        }
-        
-        // If no specific animal type found, use "Farm" 
-        return { iconType: 'breeder', displayLabel: 'Farm', category: 'breeder' };
-    }
-    
-    // Check for breeding/production facilities
-    if (type.includes('animal production')) {
-        if (type.includes('hunting') || type.includes('game')) {
-            return { iconType: 'breeder', displayLabel: 'Game/Hunting Facility', category: 'breeder' };
-        } else {
-            return { iconType: 'breeder', displayLabel: 'Animal Farm', category: 'breeder' };
-        }
-    }
-    
-    // Check for exhibition facilities
-    if (type.includes('exhibition')) {
-        return { iconType: 'exhibitor', displayLabel: 'Exhibition Facility', category: 'exhibitor' };
-    }
-    
-    // Check for aquatic facilities
-    if (type.includes('aquatic')) {
-        if (type.includes('processing')) {
-            return { iconType: 'slaughter', displayLabel: 'Aquatic Processing Facility', category: 'slaughter' };
-        } else {
-            return { iconType: 'breeder', displayLabel: 'Aquatic Production Facility', category: 'breeder' };
-        }
-    }
-    
-    // Default to processing
-    return { iconType: 'processing', displayLabel: 'Processing Facility', category: 'processing' };
-}
-
-function updateAllMarkerIcons() {
-    // Recreate live icons for the new scale
-    refreshGlobalIcons();
-    const updateMarker = (m) => {
-        if (m && m.setIcon && m._iconType) {
-            m.setIcon(iconForType(m._iconType));
-        }
-    };
-    // Update markers across all layers
-    [unifiedClusterLayer, slaughterhouseFeatureLayer, processingFeatureLayer, labFeatureLayer, inspectionReportFeatureLayer]
-        .forEach(layer => {
-            if (!layer) return;
-            layer.eachLayer(l => {
-                // l may be a marker or a group; try to update directly
-                if (l && l.eachLayer) {
-                    l.eachLayer(inner => updateMarker(inner));
-                } else {
-                    updateMarker(l);
-                }
-            });
-        });
-}
 
 // Control to cycle pin sizes
 L.Control.PinScale = L.Control.extend({
@@ -506,9 +278,12 @@ L.Control.PinScale = L.Control.extend({
         setLabel();
         L.DomEvent.on(link, 'click', L.DomEvent.stop)
                  .on(link, 'click', () => {
-                     currentPinScaleIndex = (currentPinScaleIndex + 1) % PIN_SCALES.length;
+                     cycleToNextScale();
                      setLabel();
-                     updateAllMarkerIcons();
+                     // Function will be defined later when layers are available
+                     if (typeof updateMapMarkerIcons === 'function') {
+                         updateMapMarkerIcons();
+                     }
                  });
         return container;
     }
@@ -521,113 +296,7 @@ let allLabLocations = [];
 let allInspectionReports = [];
 let isInitialDataLoading = true;
 
-// --- State Name Mapping ---
-const US_STATE_NAMES = {
-    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
-    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
-    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
-    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
-    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
-    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
-    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
-    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
-    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
-    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
-    'DC': 'District of Columbia', 'AS': 'American Samoa', 'GU': 'Guam', 'MP': 'Northern Mariana Islands',
-    'PR': 'Puerto Rico', 'VI': 'U.S. Virgin Islands'
-};
-
-const GERMAN_STATE_NAMES = {
-    'BW': 'Baden-Württemberg', 'BY': 'Bayern', 'BE': 'Berlin', 'BB': 'Brandenburg',
-    'HB': 'Bremen', 'HH': 'Hamburg', 'HE': 'Hessen', 'MV': 'Mecklenburg-Vorpommern',
-    'NI': 'Niedersachsen', 'NW': 'Nordrhein-Westfalen', 'RP': 'Rheinland-Pfalz',
-    'SL': 'Saarland', 'SN': 'Sachsen', 'ST': 'Sachsen-Anhalt', 'SH': 'Schleswig-Holstein', 'TH': 'Thüringen',
-    'DE_UNKNOWN': 'Deutschland (Unspecified)'
-};
-
-const SPANISH_STATE_NAMES = {
-    'Andalucía': 'Andalucía',
-    'Aragón': 'Aragón', 
-    'Asturias': 'Asturias',
-    'Canarias': 'Canarias',
-    'Cantabria': 'Cantabria',
-    'Castilla-La Mancha': 'Castilla-La Mancha',
-    'Castilla y León': 'Castilla y León',
-    'Cataluña': 'Cataluña',
-    'Catalunya': 'Catalunya',
-    'Comunidad de Madrid': 'Comunidad de Madrid',
-    'Comunidad Valenciana': 'Comunidad Valenciana',
-    'Euskadi': 'Euskadi',
-    'Extremadura': 'Extremadura',
-    'Galicia': 'Galicia',
-    'Ililles Balears': 'Illes Balears',
-    'La Coruña': 'La Coruña',
-    'La Rioja': 'La Rioja',
-    'Navarra': 'Navarra',
-    'País Vasco': 'País Vasco',
-    'Región de Murcia': 'Región de Murcia',
-    'ES_UNKNOWN': 'España (Unspecified)'
-};
-
-const FRENCH_STATE_NAMES = {
-    '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence', '05': 'Hautes-Alpes',
-    '06': 'Alpes-Maritimes', '07': 'Ardèche', '08': 'Ardennes', '09': 'Ariège', '10': 'Aube',
-    '11': 'Aude', '12': 'Aveyron', '13': 'Bouches-du-Rhône', '14': 'Calvados', '15': 'Cantal',
-    '16': 'Charente', '17': 'Charente-Maritime', '18': 'Cher', '19': 'Corrèze', '21': 'Côte-d\'Or',
-    '22': 'Côtes-d\'Armor', '23': 'Creuse', '24': 'Dordogne', '25': 'Doubs', '26': 'Drôme',
-    '27': 'Eure', '28': 'Eure-et-Loir', '29': 'Finistère', '30': 'Gard', '31': 'Haute-Garonne',
-    '32': 'Gers', '33': 'Gironde', '34': 'Hérault', '35': 'Ille-et-Vilaine', '36': 'Indre',
-    '37': 'Indre-et-Loire', '38': 'Isère', '39': 'Jura', '40': 'Landes', '41': 'Loir-et-Cher',
-    '42': 'Loire', '43': 'Haute-Loire', '44': 'Loire-Atlantique', '45': 'Loiret', '46': 'Lot',
-    '47': 'Lot-et-Garonne', '48': 'Lozère', '49': 'Maine-et-Loire', '50': 'Manche', '51': 'Marne',
-    '52': 'Haute-Marne', '53': 'Mayenne', '54': 'Meurthe-et-Moselle', '55': 'Meuse', '56': 'Morbihan',
-    '57': 'Moselle', '58': 'Nièvre', '59': 'Nord', '60': 'Oise', '61': 'Orne', '62': 'Pas-de-Calais',
-    '63': 'Puy-de-Dôme', '64': 'Pyrénées-Atlantiques', '65': 'Hautes-Pyrénées', '66': 'Pyrénées-Orientales',
-    '67': 'Bas-Rhin', '68': 'Haut-Rhin', '69': 'Rhône', '70': 'Haute-Saône', '71': 'Saône-et-Loire',
-    '72': 'Sarthe', '73': 'Savoie', '74': 'Haute-Savoie', '75': 'Paris', '76': 'Seine-Maritime',
-    '77': 'Seine-et-Marne', '78': 'Yvelines', '79': 'Deux-Sèvres', '80': 'Somme', '81': 'Tarn',
-    '82': 'Tarn-et-Garonne', '83': 'Var', '84': 'Vaucluse', '85': 'Vendée', '86': 'Vienne',
-    '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
-    '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne',
-    '95': 'Val-d\'Oise', '971': 'Guadeloupe', '972': 'Martinique', '973': 'Guyane',
-    '974': 'La Réunion', '976': 'Mayotte', 'FR_UNKNOWN': 'France (Unspecified)'
-};
-
-
-
-function getStateDisplayName(stateCode) {
-    return US_STATE_NAMES[stateCode] || GERMAN_STATE_NAMES[stateCode] || SPANISH_STATE_NAMES[stateCode] || FRENCH_STATE_NAMES[stateCode] || stateCode;
-}
-
-function isGermanState(stateCode) {
-    return GERMAN_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'DE_UNKNOWN';
-}
-
-function isSpanishState(stateCode) {
-    return SPANISH_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'ES_UNKNOWN';
-}
-
-function isFrenchState(stateCode) {
-    return FRENCH_STATE_NAMES.hasOwnProperty(stateCode) || stateCode === 'FR_UNKNOWN';
-}
-
-function isFrenchLocation(location) {
-    return location.country === 'fr';
-}
-
-function isDanishLocation(location) {
-    return location.country === 'dk';
-}
-
-function isUSState(stateCode) {
-    return US_STATE_NAMES.hasOwnProperty(stateCode);
-}
-
-function isUKState(stateCode) {
-    // UK states/counties are any that aren't US, German, Spanish, or French states
-    // This is simpler than maintaining a comprehensive UK county list
-    return !isUSState(stateCode) && !isGermanState(stateCode) && !isSpanishState(stateCode) && !isFrenchState(stateCode) && stateCode && stateCode.trim() !== '';
-}
+// Geographic utilities are now imported from geoUtils module
 
 // --- Hierarchical State Selection Functions ---
 function populateCountrySelector(allStateValues) {
@@ -737,27 +406,15 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
     }
 }
 
-function getSelectedCountryForState(stateCode) {
-    if (isUSState(stateCode)) return 'US';
-    if (isGermanState(stateCode)) return 'DE';
-    if (isSpanishState(stateCode)) return 'ES';
-    if (isFrenchState(stateCode)) return 'FR';
-    if (isUKState(stateCode)) return 'UK';
-    return 'all';
-}
-
-function getSelectedCountryForLocation(location) {
-    if (location.country === 'us') return 'US';
-    if (location.country === 'de') return 'DE';
-    if (location.country === 'es') return 'ES';
-    if (location.country === 'fr') return 'FR';
-    if (location.country === 'uk') return 'UK';
-    return 'all';
-}
+// getSelectedCountryForState and getSelectedCountryForLocation functions now imported from geoUtils
 
 // --- Layer Groups ---
 // A SINGLE cluster group for all marker types
-const unifiedClusterLayer = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50, disableClusteringAtZoom: 10 });
+const unifiedClusterLayer = L.markerClusterGroup({ 
+    chunkedLoading: true, 
+    maxClusterRadius: MAP_CONFIG.maxClusterRadius, 
+    disableClusteringAtZoom: MAP_CONFIG.disableClusteringAtZoom 
+});
 
 // Individual layers for when clustering is disabled
 const slaughterhouseFeatureLayer = L.layerGroup();
@@ -765,27 +422,35 @@ const processingFeatureLayer = L.layerGroup();
 const labFeatureLayer = L.layerGroup();
 const inspectionReportFeatureLayer = L.layerGroup();
 
+// Function to update all marker icons with current scale
+// Called by the pin scale control
+function updateMapMarkerIcons() {
+    updateAllMarkerIcons([unifiedClusterLayer, slaughterhouseFeatureLayer, processingFeatureLayer, labFeatureLayer, inspectionReportFeatureLayer]);
+}
+
 
 // --- DOM Element References ---
-const slaughterhouseCheckbox = document.getElementById('slaughterhousesCheckbox');
-const meatProcessingCheckbox = document.getElementById('meatProcessingPlantsCheckbox');
-const testingLabsCheckbox = document.getElementById('testingLabsCheckbox');
-const breedersCheckbox = document.getElementById('breedersCheckbox');
-const dealersCheckbox = document.getElementById('dealersCheckbox');
-const exhibitorsCheckbox = document.getElementById('exhibitorsCheckbox');
-const countrySelector = document.getElementById('country-selector');
-const stateSelector = document.getElementById('state-selector');
-const nameSearchInput = document.getElementById('name-search-input');
-const shareViewBtn = document.getElementById('share-view-btn');
-const statsContainer = document.getElementById('stats-container');
-const resetFiltersBtn = document.getElementById('reset-filters-btn');
-const downloadCsvBtn = document.getElementById('download-csv-btn');
-const loader = document.getElementById('loading-indicator');
-
-// Progress tracking elements and functions
-const loadingText = document.querySelector('.loading-text');
-const progressFill = document.querySelector('.progress-fill');
-const progressPercentage = document.querySelector('.progress-percentage');
+// Initialize all DOM elements using the constants module
+const {
+    slaughterhouseCheckbox,
+    meatProcessingCheckbox, 
+    testingLabsCheckbox,
+    breedersCheckbox,
+    dealersCheckbox,
+    exhibitorsCheckbox,
+    countrySelector,
+    stateSelector,
+    nameSearchInput,
+    shareViewBtn,
+    statsContainer,
+    resetFiltersBtn,
+    downloadCsvBtn,
+    loader,
+    loadingText,
+    progressFill,
+    progressPercentage,
+    filterHeader
+} = initializeDOMElements();
 
 function updateProgress(percentage, message) {
     // Instant updates for maximum performance
@@ -797,100 +462,7 @@ function updateProgress(percentage, message) {
     return Promise.resolve();
 }
 
-// CSV export helpers
-function normalizeUsdaRow(loc, facilityTypeParam) {
-    const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${getStateDisplayName(loc.state?.trim() || '')} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
-    
-    // Determine the type label based on the parameter and the location data
-    let typeLabel;
-    if (typeof facilityTypeParam === 'string') {
-        switch (facilityTypeParam) {
-            case 'breeding': typeLabel = 'Production Facility'; break;
-            case 'exhibition': typeLabel = 'Exhibition Facility'; break;
-            default: typeLabel = 'Facility';
-        }
-    } else {
-        // Legacy boolean support
-        typeLabel = facilityTypeParam ? 'Slaughterhouse' : 'Processing';
-    }
-    
-    // If we have the type field, use the mapped display label
-    if (loc.type) {
-        const facilityMapping = mapFacilityType(loc.type, loc.establishment_name);
-        typeLabel = facilityMapping.displayLabel;
-    }
-    
-    return {
-        Type: typeLabel,
-        Name: loc.establishment_name || '',
-        State: getStateDisplayName(loc.state || ''),
-        City: loc.city || '',
-        ZIP: loc.zip || '',
-        Address: address,
-        Latitude: loc.latitude || '',
-        Longitude: loc.longitude || '',
-        EstablishmentID: loc.establishment_id || '',
-        Phone: loc.phone || '',
-        AnimalsProcessed: loc.animals_processed || '',
-        AnimalsSlaughtered: loc.animals_slaughtered || ''
-    };
-}
-function normalizeLabRow(lab) {
-    const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
-    return {
-        Type: 'Lab',
-        Name: lab['Account Name'] || '',
-        State: (lab['City-State-Zip'] || '').split(',')[1]?.trim().split(' ')[0] || '',
-        City: (lab['City-State-Zip'] || '').split(',')[0]?.trim() || '',
-        ZIP: (lab['City-State-Zip'] || '').split(/\s+/).pop() || '',
-        Address: fullAddress,
-        Latitude: lab.latitude || '',
-        Longitude: lab.longitude || '',
-        CertificateNumber: lab['Certificate Number'] || '',
-        AnimalsTestedOn: lab['Animals Tested On'] || ''
-    };
-}
-function normalizeInspectionRow(report) {
-    let type = 'Other';
-    if (report['License Type'] === 'Class A - Breeder') type = 'Breeder';
-    else if (report['License Type'] === 'Class B - Dealer') type = 'Dealer';
-    else if (report['License Type'] === 'Class C - Exhibitor') type = 'Exhibitor';
-    const address = `${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || ''}`.replace(/^,|,$/g, '').trim();
-    return {
-        Type: type,
-        Name: report['Account Name'] || '',
-        State: report['State'] || '',
-        City: (report['City-State-Zip'] || '').split(',')[0]?.trim() || '',
-        ZIP: (report['City-State-Zip'] || '').split(/\s+/).pop() || '',
-        Address: address,
-        Latitude: report['Geocodio Latitude'] || '',
-        Longitude: report['Geocodio Longitude'] || '',
-        CertificateNumber: report['Certificate Number'] || ''
-    };
-}
-function toCsv(rows) {
-    if (!rows || rows.length === 0) return '';
-    const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
-    const esc = (v) => {
-        if (v === null || v === undefined) return '';
-        const s = String(v);
-        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-        return s;
-    };
-    const lines = [headers.join(',')].concat(rows.map(r => headers.map(h => esc(r[h])).join(',')));
-    return lines.join('\n');
-}
-function downloadText(filename, text) {
-    const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+// CSV export helpers and normalization functions now imported from geoUtils
 if (downloadCsvBtn) {
     downloadCsvBtn.addEventListener('click', () => {
         const lf = window.__lastFiltered || {};
@@ -901,10 +473,10 @@ if (downloadCsvBtn) {
         const includeDealers = dealersCheckbox.checked;
         const includeExhibitors = exhibitorsCheckbox.checked;
         const rows = [];
-        if (includeSlaughter && Array.isArray(lf.slaughterhouses)) rows.push(...lf.slaughterhouses.map(loc => normalizeUsdaRow(loc, true)));
-        if (includeProcessing && Array.isArray(lf.processingPlants)) rows.push(...lf.processingPlants.map(loc => normalizeUsdaRow(loc, false)));
-        if (includeBreeders && Array.isArray(lf.breedingFacilities)) rows.push(...lf.breedingFacilities.map(loc => normalizeUsdaRow(loc, 'breeding')));
-        if (includeExhibitors && Array.isArray(lf.exhibitionFacilities)) rows.push(...lf.exhibitionFacilities.map(loc => normalizeUsdaRow(loc, 'exhibition')));
+        if (includeSlaughter && Array.isArray(lf.slaughterhouses)) rows.push(...lf.slaughterhouses.map(loc => normalizeUsdaRow(loc, true, mapFacilityType)));
+        if (includeProcessing && Array.isArray(lf.processingPlants)) rows.push(...lf.processingPlants.map(loc => normalizeUsdaRow(loc, false, mapFacilityType)));
+        if (includeBreeders && Array.isArray(lf.breedingFacilities)) rows.push(...lf.breedingFacilities.map(loc => normalizeUsdaRow(loc, 'breeding', mapFacilityType)));
+        if (includeExhibitors && Array.isArray(lf.exhibitionFacilities)) rows.push(...lf.exhibitionFacilities.map(loc => normalizeUsdaRow(loc, 'exhibition', mapFacilityType)));
         if (includeLabs && Array.isArray(lf.filteredLabs)) rows.push(...lf.filteredLabs.map(lab => normalizeLabRow(lab)));
         if (Array.isArray(lf.filteredInspections)) {
             lf.filteredInspections.forEach(r => {
@@ -1410,9 +982,9 @@ function buildLabPopup(lab) {
             
             <p><strong>Investigation Instructions: </strong>Copy the <span class="copyable-text" data-copy="${certNum}">${"certificate number" || 'N/A'}</span>, paste it into the APHIS search tool below, then click <strong>query annual reports</strong> on the facility. Keep an eye out for <strong> exception reports</strong>; those are especially cruel.</p>
 
-            <a href="https://aphis.my.site.com/PublicSearchTool/s/annual-reports" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
+            <a href="${EXTERNAL_URLS.aphis.annualReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
             <p></p>
-            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="https://efile.aphis.usda.gov/PublicSearchTool/s/annual-reports" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="${EXTERNAL_URLS.eFileAphis.annualReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
         </div>`;
 }
 
@@ -1436,9 +1008,9 @@ function buildInspectionReportPopup(report) {
             <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
             <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
             <p><strong>Investigation Instructions: </strong>Copy the <span class="copyable-text" data-copy="${certNum}">${"certificate number" || 'N/A'}</span>, paste it into the APHIS search tool below, then click <strong>query inspection reports</strong> on the facility.</p>
-            <a href="https://aphis.my.site.com/PublicSearchTool/s/inspection-reports" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
+            <a href="${EXTERNAL_URLS.aphis.inspectionReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
             <p></p>
-            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="https://efile.aphis.usda.gov/PublicSearchTool/s/inspection-reports" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="${EXTERNAL_URLS.eFileAphis.inspectionReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
         </div>`;
 }
 // =============================================================================
@@ -1521,7 +1093,6 @@ resetFiltersBtn.addEventListener('click', () => {
 
 
 // Filter panel toggle functionality
-const filterHeader = document.querySelector('.filter-header');
 const mapFilters = document.getElementById('map-filters');
 const toggleBtn = document.getElementById('filter-toggle-btn');
 
@@ -1597,15 +1168,15 @@ async function initializeApp() {
         
         // Try production URLs first, fallback to local if they fail
         const productionUrls = [
-            'https://untileverycage-ikbq.shuttle.app/api/locations',
-            'https://untileverycage-ikbq.shuttle.app/api/aphis-reports',
-            'https://untileverycage-ikbq.shuttle.app/api/inspection-reports'
+            API_ENDPOINTS.production.locations,
+            API_ENDPOINTS.production.aphisReports,
+            API_ENDPOINTS.production.inspectionReports
         ];
         
         const localUrls = [
-            'http://127.0.0.1:8000/api/locations',
-            'http://127.0.0.1:8000/api/aphis-reports',
-            'http://127.0.0.1:8000/api/inspection-reports'
+            API_ENDPOINTS.local.locations,
+            API_ENDPOINTS.local.aphisReports,
+            API_ENDPOINTS.local.inspectionReports
         ];
         
         let urls = productionUrls;
