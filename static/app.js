@@ -1595,12 +1595,12 @@ async function initializeApp() {
         // Start fetching all data
         updateProgress(20, "Fetching facility data...");
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            fetch('http://127.0.0.1:8000/api/locations'),
-            fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            fetch('http://127.0.0.1:8000/api/inspection-reports')
+            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
+            // fetch('http://127.0.0.1:8000/api/locations'),
+            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            // fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
         updateProgress(50, "Processing responses...");
