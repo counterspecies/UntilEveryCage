@@ -615,6 +615,10 @@ function isFrenchLocation(location) {
     return location.country === 'fr';
 }
 
+function isDanishLocation(location) {
+    return location.country === 'dk';
+}
+
 function isUSState(stateCode) {
     return US_STATE_NAMES.hasOwnProperty(stateCode);
 }
@@ -631,6 +635,7 @@ function populateCountrySelector(allStateValues) {
     const hasGermanStates = allStateValues.some(state => isGermanState(state));
     const hasSpanishStates = allStateValues.some(state => isSpanishState(state));
     const hasFrenchStates = allLocations.some(location => isFrenchLocation(location));
+    const hasDanishStates = allLocations.some(location => isDanishLocation(location));
     const hasUKStates = allStateValues.some(state => isUKState(state));
     
     countrySelector.innerHTML = '<option value="all">All Countries</option>';
@@ -663,6 +668,13 @@ function populateCountrySelector(allStateValues) {
         countrySelector.appendChild(frOption);
     }
     
+    if (hasDanishStates) {
+        const dkOption = document.createElement('option');
+        dkOption.value = 'DK';
+        dkOption.textContent = 'Danmark';
+        countrySelector.appendChild(dkOption);
+    }
+    
     if (hasUKStates) {
         const ukOption = document.createElement('option');
         ukOption.value = 'UK';
@@ -685,6 +697,13 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
     } else if (selectedCountry === 'FR') {
         // Filter for actual French department codes
         filteredStates = allStateValues.filter(state => isFrenchState(state));
+    } else if (selectedCountry === 'DK') {
+        // For Danish locations, get unique city/region names from the locations
+        filteredStates = [...new Set(allLocations
+            .filter(location => isDanishLocation(location))
+            .map(location => location.city)
+            .filter(city => city && city.trim() !== '')
+        )].sort();
     } else if (selectedCountry === 'UK') {
         filteredStates = allStateValues.filter(state => isUKState(state));
     }
@@ -696,6 +715,13 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
         const noStatesOption = document.createElement('option');
         noStatesOption.value = 'none';
         noStatesOption.textContent = '(Region data not available)';
+        noStatesOption.disabled = true;
+        stateSelector.appendChild(noStatesOption);
+    } else if (filteredStates.length === 0 && selectedCountry === 'DK') {
+        // Special message for Denmark when no city data is available
+        const noStatesOption = document.createElement('option');
+        noStatesOption.value = 'none';
+        noStatesOption.textContent = '(City data not available)';
         noStatesOption.disabled = true;
         stateSelector.appendChild(noStatesOption);
     } else {
@@ -973,6 +999,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'FR' && isFrenchLocation(loc)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'DK' && isDanishLocation(loc)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(loc.state)) {
                 countryMatch = true;
             }
@@ -985,6 +1013,10 @@ function applyFilters(shouldUpdateView = false) {
         // French locations match any state selection when France is the selected country
         if (selectedCountry === 'FR') {
             stateMatch = true;
+        }
+        // Special handling for Danish locations - use city names for regional filtering
+        if (selectedCountry === 'DK') {
+            stateMatch = isAllStatesView || loc.city === selectedState;
         }
         if (!stateMatch) return false;
 
@@ -1548,12 +1580,12 @@ async function initializeApp() {
         }, 100);
 
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            // fetch('http://127.0.0.1:8000/api/locations'),
-            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            // fetch('http://127.0.0.1:8000/api/inspection-reports')
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
+            fetch('http://127.0.0.1:8000/api/locations'),
+            fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
         if (!usdaResponse.ok) throw new Error(`Data request failed`);
