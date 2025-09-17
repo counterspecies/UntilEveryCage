@@ -1593,15 +1593,73 @@ async function initializeApp() {
         if(loader) loader.style.display = 'flex';
 
         // Start fetching all data
-        updateProgress(20, "Fetching facility data...");
-        const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            // fetch('http://127.0.0.1:8000/api/locations'),
-            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            // fetch('http://127.0.0.1:8000/api/inspection-reports')
-        ]);
+        updateProgress(0, "Fetching facility data...");
+        
+        // Try production URLs first, fallback to local if they fail
+        const productionUrls = [
+            'https://untileverycage-ikbq.shuttle.app/api/locations',
+            'https://untileverycage-ikbq.shuttle.app/api/aphis-reports',
+            'https://untileverycage-ikbq.shuttle.app/api/inspection-reports'
+        ];
+        
+        const localUrls = [
+            'http://127.0.0.1:8000/api/locations',
+            'http://127.0.0.1:8000/api/aphis-reports',
+            'http://127.0.0.1:8000/api/inspection-reports'
+        ];
+        
+        let urls = productionUrls;
+        let usdaResponse, aphisResponse, inspectionsResponse;
+        
+        try {
+            // Create AbortController for timeout handling
+            const abortController = new AbortController();
+            const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30 second timeout
+            
+            [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
+                fetch(urls[0], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'cors'
+                }),
+                fetch(urls[1], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'cors'
+                }),
+                fetch(urls[2], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'cors'
+                })
+            ]);
+            
+            clearTimeout(timeoutId);
+        } catch (error) {
+            console.warn('Production API failed, trying local development server:', error);
+            updateProgress(20, "Trying local server...");
+            
+            // Try local development URLs as fallback
+            const abortController = new AbortController();
+            const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout for local
+            
+            [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
+                fetch(localUrls[0], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' }
+                }),
+                fetch(localUrls[1], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' }
+                }),
+                fetch(localUrls[2], { 
+                    signal: abortController.signal,
+                    headers: { 'Accept': 'application/json' }
+                })
+            ]);
+            
+            clearTimeout(timeoutId);
+        }
 
         updateProgress(50, "Processing responses...");
 
@@ -1609,7 +1667,7 @@ async function initializeApp() {
         if (!aphisResponse.ok) throw new Error(`APHIS data request failed`);
         if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed`);
 
-        updateProgress(60, "Loading USDA locations...");
+        updateProgress(30, "Loading facility locations...");
         allLocations = await usdaResponse.json();
         
         updateProgress(70, "Loading APHIS reports...");
@@ -1617,6 +1675,9 @@ async function initializeApp() {
         
         updateProgress(80, "Loading inspection reports...");
         allInspectionReports = await inspectionsResponse.json();
+                
+        updateProgress(100, "Done!");
+
         // Process German locations - extract specific German states from establishment IDs
         allLocations = allLocations.map(location => {
             // Check if location doesn't have a state and appears to be in Germany
@@ -1702,12 +1763,22 @@ async function initializeApp() {
         }
 
         applyFilters(shouldUpdateViewOnLoad);
-        
-        updateProgress(100, "Complete!");
+
 
     } catch (error) {
         console.error('Failed to fetch initial data:', error);
-        if(statsContainer) statsContainer.innerHTML = `Could not load map data. Please try refreshing the page.`;
+        let errorMessage = 'Could not load map data. Please try refreshing the page.';
+        
+        if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out. Please check your internet connection and try refreshing the page.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage = 'Network error. Please check your internet connection and try refreshing the page.';
+        } else if (error.message.includes('CORS')) {
+            errorMessage = 'Server configuration issue. Please try again later.';
+        }
+        
+        if(statsContainer) statsContainer.innerHTML = errorMessage;
+        updateProgress(0, "Error loading data");
     } finally {
         clearTimeout(loaderTimeout);
         if(loader) loader.style.display = 'none';
