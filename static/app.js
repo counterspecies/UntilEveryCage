@@ -615,6 +615,10 @@ function isFrenchLocation(location) {
     return location.country === 'fr';
 }
 
+function isDanishLocation(location) {
+    return location.country === 'dk';
+}
+
 function isUSState(stateCode) {
     return US_STATE_NAMES.hasOwnProperty(stateCode);
 }
@@ -631,6 +635,7 @@ function populateCountrySelector(allStateValues) {
     const hasGermanStates = allStateValues.some(state => isGermanState(state));
     const hasSpanishStates = allStateValues.some(state => isSpanishState(state));
     const hasFrenchStates = allLocations.some(location => isFrenchLocation(location));
+    const hasDanishStates = allLocations.some(location => isDanishLocation(location));
     const hasUKStates = allStateValues.some(state => isUKState(state));
     
     countrySelector.innerHTML = '<option value="all">All Countries</option>';
@@ -663,6 +668,13 @@ function populateCountrySelector(allStateValues) {
         countrySelector.appendChild(frOption);
     }
     
+    if (hasDanishStates) {
+        const dkOption = document.createElement('option');
+        dkOption.value = 'DK';
+        dkOption.textContent = 'Danmark';
+        countrySelector.appendChild(dkOption);
+    }
+    
     if (hasUKStates) {
         const ukOption = document.createElement('option');
         ukOption.value = 'UK';
@@ -685,6 +697,13 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
     } else if (selectedCountry === 'FR') {
         // Filter for actual French department codes
         filteredStates = allStateValues.filter(state => isFrenchState(state));
+    } else if (selectedCountry === 'DK') {
+        // For Danish locations, get unique city/region names from the locations
+        filteredStates = [...new Set(allLocations
+            .filter(location => isDanishLocation(location))
+            .map(location => location.city)
+            .filter(city => city && city.trim() !== '')
+        )].sort();
     } else if (selectedCountry === 'UK') {
         filteredStates = allStateValues.filter(state => isUKState(state));
     }
@@ -696,6 +715,13 @@ function populateStateSelector(allStateValues, selectedCountry = 'all') {
         const noStatesOption = document.createElement('option');
         noStatesOption.value = 'none';
         noStatesOption.textContent = '(Region data not available)';
+        noStatesOption.disabled = true;
+        stateSelector.appendChild(noStatesOption);
+    } else if (filteredStates.length === 0 && selectedCountry === 'DK') {
+        // Special message for Denmark when no city data is available
+        const noStatesOption = document.createElement('option');
+        noStatesOption.value = 'none';
+        noStatesOption.textContent = '(City data not available)';
         noStatesOption.disabled = true;
         stateSelector.appendChild(noStatesOption);
     } else {
@@ -755,6 +781,21 @@ const statsContainer = document.getElementById('stats-container');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
 const downloadCsvBtn = document.getElementById('download-csv-btn');
 const loader = document.getElementById('loading-indicator');
+
+// Progress tracking elements and functions
+const loadingText = document.querySelector('.loading-text');
+const progressFill = document.querySelector('.progress-fill');
+const progressPercentage = document.querySelector('.progress-percentage');
+
+function updateProgress(percentage, message) {
+    // Instant updates for maximum performance
+    if (loadingText) loadingText.textContent = message;
+    if (progressFill) progressFill.style.width = `${percentage}%`;
+    if (progressPercentage) progressPercentage.textContent = `${Math.round(percentage)}%`;
+    
+    // Return a resolved promise to maintain compatibility
+    return Promise.resolve();
+}
 
 // CSV export helpers
 function normalizeUsdaRow(loc, facilityTypeParam) {
@@ -973,6 +1014,8 @@ function applyFilters(shouldUpdateView = false) {
                 countryMatch = true;
             } else if (selectedCountry === 'FR' && isFrenchLocation(loc)) {
                 countryMatch = true;
+            } else if (selectedCountry === 'DK' && isDanishLocation(loc)) {
+                countryMatch = true;
             } else if (selectedCountry === 'UK' && isUKState(loc.state)) {
                 countryMatch = true;
             }
@@ -985,6 +1028,10 @@ function applyFilters(shouldUpdateView = false) {
         // French locations match any state selection when France is the selected country
         if (selectedCountry === 'FR') {
             stateMatch = true;
+        }
+        // Special handling for Danish locations - use city names for regional filtering
+        if (selectedCountry === 'DK') {
+            stateMatch = isAllStatesView || loc.city === selectedState;
         }
         if (!stateMatch) return false;
 
@@ -1542,28 +1589,34 @@ async function initializeApp() {
     let loaderTimeout;
 
     try {
-        // Show loader only if data takes more than 100ms to load
-        loaderTimeout = setTimeout(() => {
-            if(loader) loader.style.display = 'flex';
-        }, 100);
+        // Show loader immediately for better UX with progress bar
+        if(loader) loader.style.display = 'flex';
 
+        // Start fetching all data
+        updateProgress(20, "Fetching facility data...");
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
-            fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
-            fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
-            // fetch('http://127.0.0.1:8000/api/locations'),
-            // fetch('http://127.0.0.1:8000/api/aphis-reports'),
-            // fetch('http://127.0.0.1:8000/api/inspection-reports')
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
+            // fetch('https://untileverycage-ikbq.shuttle.app/api/inspection-reports'),
+            fetch('http://127.0.0.1:8000/api/locations'),
+            fetch('http://127.0.0.1:8000/api/aphis-reports'),
+            fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
+
+        updateProgress(50, "Processing responses...");
 
         if (!usdaResponse.ok) throw new Error(`Data request failed`);
         if (!aphisResponse.ok) throw new Error(`APHIS data request failed`);
         if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed`);
 
+        updateProgress(60, "Loading USDA locations...");
         allLocations = await usdaResponse.json();
-        allLabLocations = await aphisResponse.json();
-        allInspectionReports = await inspectionsResponse.json();
         
+        updateProgress(70, "Loading APHIS reports...");
+        allLabLocations = await aphisResponse.json();
+        
+        updateProgress(80, "Loading inspection reports...");
+        allInspectionReports = await inspectionsResponse.json();
         // Process German locations - extract specific German states from establishment IDs
         allLocations = allLocations.map(location => {
             // Check if location doesn't have a state and appears to be in Germany
@@ -1649,6 +1702,8 @@ async function initializeApp() {
         }
 
         applyFilters(shouldUpdateViewOnLoad);
+        
+        updateProgress(100, "Complete!");
 
     } catch (error) {
         console.error('Failed to fetch initial data:', error);

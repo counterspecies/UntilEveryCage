@@ -709,6 +709,41 @@ hr {
     color: #333;
     font-size: 16px;
     font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+/* Progress Bar Styles */
+.progress-container {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #c81a2a 0%, #e74c3c 100%);
+    width: 0%;
+    transition: none; /* Disable CSS transition since we're using JS animation */
+    border-radius: 3px;
+}
+
+.progress-percentage {
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
 }
 
 /* --- Contribute Page Styles --- */
