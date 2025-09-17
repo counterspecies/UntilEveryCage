@@ -782,6 +782,21 @@ const resetFiltersBtn = document.getElementById('reset-filters-btn');
 const downloadCsvBtn = document.getElementById('download-csv-btn');
 const loader = document.getElementById('loading-indicator');
 
+// Progress tracking elements and functions
+const loadingText = document.querySelector('.loading-text');
+const progressFill = document.querySelector('.progress-fill');
+const progressPercentage = document.querySelector('.progress-percentage');
+
+function updateProgress(percentage, message) {
+    // Instant updates for maximum performance
+    if (loadingText) loadingText.textContent = message;
+    if (progressFill) progressFill.style.width = `${percentage}%`;
+    if (progressPercentage) progressPercentage.textContent = `${Math.round(percentage)}%`;
+    
+    // Return a resolved promise to maintain compatibility
+    return Promise.resolve();
+}
+
 // CSV export helpers
 function normalizeUsdaRow(loc, facilityTypeParam) {
     const address = (loc.street && loc.street.trim()) ? `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${getStateDisplayName(loc.state?.trim() || '')} ${loc.zip || ''}`.replace(/ ,/g, ',') : '';
@@ -1574,11 +1589,11 @@ async function initializeApp() {
     let loaderTimeout;
 
     try {
-        // Show loader only if data takes more than 100ms to load
-        loaderTimeout = setTimeout(() => {
-            if(loader) loader.style.display = 'flex';
-        }, 100);
+        // Show loader immediately for better UX with progress bar
+        if(loader) loader.style.display = 'flex';
 
+        // Start fetching all data
+        updateProgress(20, "Fetching facility data...");
         const [usdaResponse, aphisResponse, inspectionsResponse] = await Promise.all([
             // fetch('https://untileverycage-ikbq.shuttle.app/api/locations'),
             // fetch('https://untileverycage-ikbq.shuttle.app/api/aphis-reports'),
@@ -1588,14 +1603,20 @@ async function initializeApp() {
             fetch('http://127.0.0.1:8000/api/inspection-reports')
         ]);
 
+        updateProgress(50, "Processing responses...");
+
         if (!usdaResponse.ok) throw new Error(`Data request failed`);
         if (!aphisResponse.ok) throw new Error(`APHIS data request failed`);
         if (!inspectionsResponse.ok) throw new Error(`Inspections data request failed`);
 
+        updateProgress(60, "Loading USDA locations...");
         allLocations = await usdaResponse.json();
-        allLabLocations = await aphisResponse.json();
-        allInspectionReports = await inspectionsResponse.json();
         
+        updateProgress(70, "Loading APHIS reports...");
+        allLabLocations = await aphisResponse.json();
+        
+        updateProgress(80, "Loading inspection reports...");
+        allInspectionReports = await inspectionsResponse.json();
         // Process German locations - extract specific German states from establishment IDs
         allLocations = allLocations.map(location => {
             // Check if location doesn't have a state and appears to be in Germany
@@ -1681,6 +1702,8 @@ async function initializeApp() {
         }
 
         applyFilters(shouldUpdateViewOnLoad);
+        
+        updateProgress(100, "Complete!");
 
     } catch (error) {
         console.error('Failed to fetch initial data:', error);
