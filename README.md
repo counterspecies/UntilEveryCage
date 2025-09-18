@@ -2,6 +2,8 @@
 
 An interactive, data-driven map exposing the **global** infrastructure of animal exploitation.
 
+![alt text](https://github.com/counterspecies/UntilEveryCage/blob/master/static/assets/icon.png)
+
 ### Their Power is Secrecy. Our Power is Information.
 
 The animal agriculture industry's power is built on a foundation of propaganda and secrecy. This project is a tool designed to shatter that secrecy. It is not a directory; it is a blueprint of an industrial atrocity. By consolidating publicly available data into a single, accessible map, we aim to provide a resource for activists, journalists, and researchers to investigate, document, and ultimately dismantle this system of violence.
