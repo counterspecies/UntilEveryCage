@@ -56,6 +56,22 @@ import {
     updateAllMarkerIcons
 } from './modules/iconUtils.js';
 
+// Import Leaflet controls
+import { 
+    initializeCustomControls,
+    moveControlsToBottom,
+    createFullscreenControl,
+    createFindMeControl,
+    createPinScaleControl
+} from './modules/leafletControls.js';
+
+// Import popup builders
+import { 
+    buildLocationPopup,
+    buildLabPopup,
+    buildInspectionReportPopup
+} from './modules/popupBuilder.js';
+
 // =============================================================================
 //  MAP INITIALIZATION & CONFIGURATION
 // =============================================================================
@@ -149,146 +165,12 @@ L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomleft' }).a
 //  CUSTOM LEAFLET CONTROLS
 // =============================================================================
 
-/**
- * Custom Fullscreen Control for Leaflet.
- */
-L.Control.CustomFullscreen = L.Control.extend({
-    options: {
-        position: 'bottomright',
-        enterText: 'Fullscreen',
-        exitText: 'Exit'
-    },
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-fullscreen');
-        this.link = L.DomUtil.create('a', '', container);
-        this.link.href = '#';
-        this.link.innerHTML = this.options.enterText;
-        this._map = map;
-        L.DomEvent.on(document, 'fullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.on(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.on(document, 'mozfullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.on(document, 'msfullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.on(container, 'click', L.DomEvent.stop);
-        L.DomEvent.on(container, 'click', this._toggleFullscreen, this);
-        return container;
-    },
-    onRemove: function (map) {
-        L.DomEvent.off(document, 'fullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.off(document, 'webkitfullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.off(document, 'mozfullscreenchange', this._onFullscreenChange, this);
-        L.DomEvent.off(document, 'msfullscreenchange', this._onFullscreenChange, this);
-    },
-    _toggleFullscreen: function () {
-        const container = this._map.getContainer();
-        if (L.DomUtil.hasClass(container, 'map-pseudo-fullscreen')) {
-            L.DomUtil.removeClass(container, 'map-pseudo-fullscreen');
-            this.link.innerHTML = this.options.enterText;
-            this._map.invalidateSize();
-            return;
-        }
-        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        if (fullscreenElement) {
-            const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-            if (exitMethod) exitMethod.call(document);
-        } else {
-            const requestMethod = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
-            if (requestMethod) {
-                requestMethod.call(container);
-            } else {
-                L.DomUtil.addClass(container, 'map-pseudo-fullscreen');
-                this.link.innerHTML = this.options.exitText;
-                this._map.invalidateSize();
-            }
-        }
-    },
-    _onFullscreenChange: function () {
-        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        this.link.innerHTML = fullscreenElement ? this.options.exitText : this.options.enterText;
-    }
-});
-map.addControl(new L.Control.CustomFullscreen());
-
-// Move all map controls to bottom to avoid overlap with filter panel
-function moveControlsToBottom() {
-    const leftControls = document.querySelector('.leaflet-top.leaflet-left');
-    const rightControls = document.querySelector('.leaflet-top.leaflet-right');
-    
-    if (leftControls) {
-        leftControls.classList.remove('leaflet-top');
-        leftControls.classList.add('leaflet-bottom');
-    }
-    if (rightControls) {
-        rightControls.classList.remove('leaflet-top');
-        rightControls.classList.add('leaflet-bottom');
-    }
-}
-
-// Call after a short delay to ensure controls are rendered
-setTimeout(moveControlsToBottom, 100);
-
-/**
- * Custom Find Me Control
- */
-L.Control.FindMe = L.Control.extend({
-    options: {
-        position: 'bottomright'
-    },
-    onAdd: function(map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-find-me');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Find my location';
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-                  .on(link, 'click', () => {
-                      map.locate({ setView: true, maxZoom: 12 });
-                  });
-        
-        return container;
-    }
-});
-map.addControl(new L.Control.FindMe());
-
-map.on('locationfound', e => {
-    L.marker(e.latlng).addTo(map)
-     .bindPopup("You are here.").openPopup();
-});
-map.on('locationerror', e => {
-    alert(e.message);
-});
-
+// Initialize all custom controls
+initializeCustomControls(map);
 
 // =============================================================================
 //  LAYER GROUPS
 // =============================================================================
-
-
-
-// Control to cycle pin sizes
-L.Control.PinScale = L.Control.extend({
-    options: { position: 'bottomright' },
-    onAdd: function(map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-pin-scale');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Toggle pin size';
-        link.style.minWidth = '34px';
-        link.style.textAlign = 'center';
-        const setLabel = () => { link.textContent = `${getCurrentScale()}x`; };
-        setLabel();
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-                 .on(link, 'click', () => {
-                     cycleToNextScale();
-                     setLabel();
-                     // Function will be defined later when layers are available
-                     if (typeof updateMapMarkerIcons === 'function') {
-                         updateMapMarkerIcons();
-                     }
-                 });
-        return container;
-    }
-});
-map.addControl(new L.Control.PinScale());
 
 // --- Application State Management ---
 let allLocations = [];
@@ -859,160 +741,7 @@ function updateStats(slaughterhouses, processing, labs, inspections, breeding, e
     statsContainer.innerHTML = stats.length > 0 ? `Showing: ${stats.join(', ')}` : 'No facilities match the current filters.';
 }
 
-// =============================================================================
-//  POPUP BUILDER HELPER FUNCTIONS
-// =============================================================================
 
-// REPLACE this function in app.js
-function buildLocationPopup(location, facilityTypeLabel) {
-    const establishmentName = location.establishment_name || 'Unknown Name';
-    const locationTypeText = typeof facilityTypeLabel === 'string' ? facilityTypeLabel : 
-                            (facilityTypeLabel ? "Slaughterhouse" : "Processing-Only Facility");
-    const fullAddress = location.street && location.street.trim() ? `${location.street.trim()}, ${location.city.trim()}, ${getStateDisplayName(location.state.trim())} ${location.zip}` : 'Address not available';
-    const establishmentId = location.establishment_id;
-    const grantDate = location.grant_date;
-    const phone = location.phone;
-    const dbas = location.dbas;
-    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
-
-    let animals_processed_monthly_text = "N/A";
-    if (location.processing_volume_category) {
-        switch (location.processing_volume_category) {
-            case "1.0": animals_processed_monthly_text = "Less than 10,000 pounds/month."; break;
-            case "2.0": animals_processed_monthly_text = "10k - 100k pounds/month."; break;
-            case "3.0": animals_processed_monthly_text = "100k - 1M pounds/month."; break;
-            case "4.0": animals_processed_monthly_text = "1M - 10M pounds/month."; break;
-            case "5.0": animals_processed_monthly_text = "Over 10M pounds/month."; break;
-        }
-    }
-
-    // Check if animals_processed has meaningful data
-    const hasAnimalsProcessed = location.animals_processed && 
-                               location.animals_processed.toLowerCase() !== 'n/a' && 
-                               location.animals_processed.toLowerCase() !== 'unknown' &&
-                               location.animals_processed.trim() !== '';
-    
-    // Check if processing volume has meaningful data
-    const hasProcessingVolume = location.processing_volume_category && 
-                               location.processing_volume_category !== "0.0" &&
-                               animals_processed_monthly_text !== "N/A";
-
-    let slaughterText = "";
-    const isSlaughterFacility = typeof facilityTypeLabel === 'string' ? 
-        (facilityTypeLabel.toLowerCase().includes('slaughter') || facilityTypeLabel.toLowerCase().includes('aquatic processing')) :
-        facilityTypeLabel === true;
-    
-    if (isSlaughterFacility) {
-        let animals_slaughtered_yearly_text = "N/A";
-        if (location.slaughter_volume_category) {
-            switch (location.slaughter_volume_category) {
-                case "1.0": animals_slaughtered_yearly_text = "Less than 1,000 animals/year."; break;
-                case "2.0": animals_slaughtered_yearly_text = "1k - 10k animals/year."; break;
-                case "3.0": animals_slaughtered_yearly_text = "10k - 100k animals/year."; break;
-                case "4.0": animals_slaughtered_yearly_text = "100k - 10M animals/year."; break;
-                case "5.0": animals_slaughtered_yearly_text = "Over 10M animals/year."; break;
-            }
-        }
-        
-        // Check if animals_slaughtered has meaningful data
-        const hasAnimalsSlaughtered = location.animals_slaughtered && 
-                                     location.animals_slaughtered.toLowerCase() !== 'n/a' && 
-                                     location.animals_slaughtered.toLowerCase() !== 'unknown' &&
-                                     location.animals_slaughtered.trim() !== '';
-        
-        // Check if slaughter volume has meaningful data
-        const hasSlaughterVolume = location.slaughter_volume_category && 
-                                  location.slaughter_volume_category !== "0.0" &&
-                                  animals_slaughtered_yearly_text !== "N/A";
-        
-        // Only include slaughter data if at least one field has meaningful data
-        if (hasAnimalsSlaughtered || hasSlaughterVolume) {
-            slaughterText = `<hr>`;
-            if (hasAnimalsSlaughtered) {
-                slaughterText += `<p><strong>Types of Animals Killed:</strong> ${location.animals_slaughtered}</p>`;
-            }
-            if (hasSlaughterVolume) {
-                slaughterText += `<p><strong>Slaughter Volume:</strong> ${animals_slaughtered_yearly_text}</p>`;
-            }
-        }
-    }
-
-    // Create disclaimer text if needed
-    let disclaimerText = '';
-    if (location.country && location.country !== 'us') {
-        disclaimerText = ' (Approximately)';
-    }
-
-    return `
-        <div class="info-popup">
-            <h3>${establishmentName}</h3>
-            <p1><strong>${locationTypeText}</strong></p1><br>
-            <p1>(${location.latitude}, ${location.longitude}) ${disclaimerText}</p1>
-            <hr>
-            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress}</span></p>
-            <p><strong>ID:</strong> <span class="copyable-text" data-copy="${establishmentId}">${establishmentId}</span></p>
-            ${phone && phone.trim() !== '' && phone !== 'N/A' ? `<p><strong>Phone:</strong> <span class="copyable-text" data-copy="${phone}">${phone}</span></p>` : ''}
-            ${dbas ? `<p><strong>Doing Business As:</strong> <span class="copyable-text" data-copy="${dbas}">${dbas}</span></p>` : ""}
-            ${(hasAnimalsProcessed || hasProcessingVolume) ? '<hr>' : ''}
-            ${hasAnimalsProcessed ? `<p><strong>Products Processed:</strong> ${location.animals_processed}</p>` : ''}
-            ${hasProcessingVolume ? `<p><strong>Product Volume:</strong> ${animals_processed_monthly_text}</p>` : ''}
-            ${slaughterText}
-            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a>${location.country === 'us' || !location.country ? ' | <a href="https://www.fsis.usda.gov/inspection/establishments/meat-poultry-and-egg-product-inspection-directory" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>' : location.country === 'uk' ? ' | <a href="https://transparentfarms.org.uk/" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>' : location.country === 'es' ? ' | <a href="https://granjastransparentes.es/" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>' : location.country === 'fr' ? ' | <a href="https://www.google.com/maps/d/u/0/viewer?mid=1TGGpOJz40AHgTrbfYMO6sg3XrTFoG31n&ll=48.794860747569736%2C2.0410253416334534&z=8" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>' : location.country === 'de' ? ' | <a href="https://www.google.com/maps/d/u/0/viewer?mid=1TGGpOJz40AHgTrbfYMO6sg3XrTFoG31n&ll=48.794860747569736%2C2.0410253416334534&z=8" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>' : ''}
-        </div>`;
-}
-
-
-function buildLabPopup(lab) {
-    const name = lab['Account Name'] || 'Unknown Name';
-    const certNum = lab['Certificate Number'];
-    const fullAddress = `${lab['Address Line 1'] || ''} ${lab['Address Line 2'] || ''} ${lab['City-State-Zip'] || ''}`.trim().replace(/ ,/g, ',');
-    const arloUrl = certNum ? `https://arlo.riseforanimals.org/browse?query=${encodeURIComponent(certNum)}&order=relevance` : null;
-    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lab.latitude},${lab.longitude}`;
-
-    return `
-        <div class="info-popup">
-            <h3>${name}</h3>
-            <p1><strong>${lab['Registration Type'] || 'N/A'}</strong></p1><br>
-            <p1>(${lab.latitude},${lab.longitude}) (Approximately)</p1>
-            <hr>
-            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
-            <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
-            <p><strong>Animals Being Tested On:</strong> ${lab['Animals Tested On'] || 'N/A'}</p>
-            <hr>
-            
-            <p><strong>Investigation Instructions: </strong>Copy the <span class="copyable-text" data-copy="${certNum}">${"certificate number" || 'N/A'}</span>, paste it into the APHIS search tool below, then click <strong>query annual reports</strong> on the facility. Keep an eye out for <strong> exception reports</strong>; those are especially cruel.</p>
-
-            <a href="${EXTERNAL_URLS.aphis.annualReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
-            <p></p>
-            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="${EXTERNAL_URLS.eFileAphis.annualReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
-        </div>`;
-}
-
-function buildInspectionReportPopup(report) {
-    let classText = "N/A";
-    if (report['License Type'] === "Class A - Breeder") classText = "Animal Breeder";
-    else if (report['License Type'] === "Class B - Dealer") classText = "Animal Dealer";
-    else if (report['License Type'] === "Class C - Exhibitor") classText = "Exhibitor / Zoo";
-    
-    const name = report['Account Name'] || 'Unknown Name';
-    const certNum = report['Certificate Number'];
-    const fullAddress = `${report['Address Line 1'] || ''}, ${report['City-State-Zip'] || ''}`.trim().replace(/^,|,$/g, '').trim();
-    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report['Geocodio Latitude']},${report['Geocodio Longitude']}`;
-
-    return `
-        <div class="info-popup inspection-popup">
-            <h3>${name}</h3>
-            <p1><strong>${classText}</strong></p1><br>
-            <p1>(${report['Geocodio Latitude']}, ${report['Geocodio Longitude']}) (Approximately)</p1>
-            <hr>
-            <p><strong>Address:</strong> <span class="copyable-text" data-copy="${fullAddress}">${fullAddress || 'N/A'}</span></p>
-            <p><strong>Certificate Number:</strong> <span class="copyable-text" data-copy="${certNum}">${certNum || 'N/A'}</span></p>
-            <p><strong>Investigation Instructions: </strong>Copy the <span class="copyable-text" data-copy="${certNum}">${"certificate number" || 'N/A'}</span>, paste it into the APHIS search tool below, then click <strong>query inspection reports</strong> on the facility.</p>
-            <a href="${EXTERNAL_URLS.aphis.inspectionReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Open APHIS Search Tool</strong></a>
-            <p></p>
-            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>Get Directions</strong></a> | <a href="${EXTERNAL_URLS.eFileAphis.inspectionReports}" target="_blank" rel="noopener noreferrer" class="directions-btn"><strong>View Source</strong></a>
-        </div>`;
-}
 // =============================================================================
 //  EVENT LISTENERS & UTILITY FUNCTIONS
 // =============================================================================
@@ -1249,27 +978,46 @@ async function initializeApp() {
                 
         updateProgress(100, "Done!");
 
-        // Process German locations - extract specific German states from establishment IDs
+        // Process locations - set country codes and extract state information
         allLocations = allLocations.map(location => {
-            // Check if location doesn't have a state and appears to be in Germany
-            if (!location.state || location.state.trim() === '') {
+            // Create a copy to avoid mutating the original
+            let processedLocation = { ...location };
+            
+            // Set country field based on various detection methods
+            if (!processedLocation.country) {
+                // Check for Denmark first (simplest detection)
+                if (location.county === 'Denmark' || 
+                    (location.latitude > 54.5 && location.latitude < 58 && 
+                     location.longitude > 8 && location.longitude < 16)) {
+                    processedLocation.country = 'dk';
+                    // Danish locations don't use state/province system, keep state empty
+                    return processedLocation;
+                }
+                
+                // Check for Germany
+                if (location.latitude > 47 && location.latitude < 55.2 && 
+                    location.longitude > 5 && location.longitude < 16) {
+                    processedLocation.country = 'de';
+                }
+            }
+            
+            // Process German locations - extract specific German states from establishment IDs
+            if (processedLocation.country === 'de' && (!location.state || location.state.trim() === '')) {
                 // First try to extract German state from establishment ID (most reliable)
                 if (location.establishment_id && typeof location.establishment_id === 'string') {
                     const germanStateMatch = location.establishment_id.match(/^(BW|BY|BE|BB|HB|HH|HE|MV|NI|NW|RP|SL|SN|ST|SH|TH)\s/);
                     if (germanStateMatch) {
                         const germanStateCode = germanStateMatch[1];
-                        return { ...location, state: germanStateCode };
+                        processedLocation.state = germanStateCode;
+                        return processedLocation;
                     }
                 }
-                // Fallback: Check if coordinates are within Germany's boundaries
-                // Germany: latitude ~47.3-55.1, longitude ~5.9-15.0
-                if (location.latitude > 47 && location.latitude < 56 && 
-                    location.longitude > 5 && location.longitude < 16) {
-                    // If we can't determine the specific state, use a generic German identifier
-                    return { ...location, state: 'DE_UNKNOWN' };
-                }
+                
+                // If we can't determine the specific German state, use a generic German identifier
+                processedLocation.state = 'DE_UNKNOWN';
             }
-            return location;
+            
+            return processedLocation;
         });
         
         const allStateValues = [...new Set([

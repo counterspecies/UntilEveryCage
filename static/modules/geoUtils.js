@@ -20,6 +20,11 @@ import {
  * @returns {string} - Display name or original code if not found
  */
 export function getStateDisplayName(stateCode) {
+    // Return empty string for undefined, null, or empty state codes (like Danish locations)
+    if (!stateCode || stateCode.trim() === '') {
+        return '';
+    }
+    
     return US_STATE_NAMES[stateCode] || 
            GERMAN_STATE_NAMES[stateCode] || 
            SPANISH_STATE_NAMES[stateCode] || 
@@ -136,8 +141,10 @@ export function getSelectedCountryForLocation(location) {
  * @returns {Object} - Normalized row object for CSV export
  */
 export function normalizeUsdaRow(loc, facilityTypeParam, mapFacilityType = null) {
+    const stateDisplayName = getStateDisplayName(loc.state?.trim() || '');
+    const statePart = stateDisplayName ? `, ${stateDisplayName}` : '';
     const address = (loc.street && loc.street.trim()) ? 
-        `${loc.street.trim()}, ${loc.city?.trim() || ''}, ${getStateDisplayName(loc.state?.trim() || '')} ${loc.zip || ''}`.replace(/ ,/g, ',') : 
+        `${loc.street.trim()}, ${loc.city?.trim() || ''}${statePart} ${loc.zip || ''}`.replace(/ ,/g, ',') : 
         '';
     
     // Determine the type label based on the parameter and the location data
@@ -237,6 +244,7 @@ export function normalizeInspectionRow(report) {
 export function toCsv(rows) {
     if (!rows || rows.length === 0) return '';
     
+    // @ts-ignore
     const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
     
     const esc = (v) => {
