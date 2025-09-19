@@ -68,7 +68,7 @@ To run this project locally for development or research, follow these steps.
 
 ## How to View the Page
 
-To view the web page, simply open the `index.html` file located in the root directory of the project in your web browser. This will load the client-side application, which will then connect to the running backend server.
+To view the web page, start a python server to serve the local files `python -m http.server 8000`, then navigate to `http://127.0.0.1:8000/static/` on your web browser.
 
 ---
 
