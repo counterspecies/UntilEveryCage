@@ -150,16 +150,102 @@ const transportationOverlay = L.tileLayer('https://server.arcgisonline.com/ArcGI
 // Combine satellite base with clean transportation overlay
 const satelliteMap = L.layerGroup([satelliteBase, transportationOverlay]);
 
-// Add the default street map layer to the map on initial load.
-streetMap.addTo(map);
+// Don't add any layer initially - Default View will handle this
 
-// Create the layer control to allow switching between Street and Satellite views.
+// =============================================================================
+//  DEFAULT VIEW CONTROL
+// =============================================================================
+
+// Track default view state
+let isDefaultViewActive = true; // Start with Default View active
+let currentActiveLayer = streetMap; // Track which layer is currently active
+let isAutoSwitching = false; // Flag to prevent event interference during automatic switching
+
+// Configuration: Zoom threshold for switching to satellite view
+// CHANGE THIS VALUE to adjust when satellite view activates
+const SATELLITE_ZOOM_THRESHOLD = 13;
+
+// Create a dummy layer for "Default View" option
+const defaultViewLayer = L.layerGroup();
+
+// Function to apply the appropriate layer based on zoom level
+function applyZoomBasedLayer() {
+    if (!isDefaultViewActive) return;
+    
+    const currentZoom = map.getZoom();
+    let targetLayer;
+    
+    if (currentZoom > SATELLITE_ZOOM_THRESHOLD) {
+        targetLayer = satelliteMap;
+    } else {
+        targetLayer = streetMap;
+    }
+    
+    // Only switch if we need to change layers
+    if (currentActiveLayer !== targetLayer) {
+        isAutoSwitching = true; // Set flag to prevent event interference
+        
+        // Remove all base layers first to avoid conflicts
+        map.removeLayer(streetMap);
+        map.removeLayer(satelliteMap);
+        
+        // Add the target layer
+        map.addLayer(targetLayer);
+        currentActiveLayer = targetLayer;
+        
+        // Force the Default View radio button to stay selected
+        // We do this by finding the radio button and setting it as checked
+        setTimeout(() => {
+            const layerControlElement = document.querySelector('.leaflet-control-layers');
+            if (layerControlElement) {
+                const defaultViewRadio = layerControlElement.querySelector('input[type="radio"]');
+                if (defaultViewRadio) {
+                    defaultViewRadio.checked = true;
+                }
+            }
+        }, 10);
+        
+        isAutoSwitching = false; // Clear flag
+        console.log(`Auto-switched to ${currentZoom > SATELLITE_ZOOM_THRESHOLD ? 'satellite' : 'street'} view at zoom ${currentZoom}`);
+    }
+}
+
+// Listen for zoom changes to auto-switch layers when in default view mode
+map.on('zoomend', function() {
+    applyZoomBasedLayer();
+});
+
+// Create the layer control with Default View integrated
 const baseMaps = {
+    "Default View": defaultViewLayer,
     "Street View": streetMap,
     "Satellite View": satelliteMap
 };
-L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomleft' }).addTo(map);
+const layerControl = L.control.layers(baseMaps, null, { collapsed: false, position: 'bottomleft' }).addTo(map);
 
+// Initialize with Default View active
+defaultViewLayer.addTo(map); // This makes "Default View" show as selected
+applyZoomBasedLayer(); // Apply the appropriate layer based on initial zoom level
+
+// Handle layer control events
+map.on('baselayerchange', function(e) {
+    // Ignore events triggered by our automatic switching
+    if (isAutoSwitching) return;
+    
+    if (e.name === 'Default View') {
+        isDefaultViewActive = true;
+        console.log('Default View activated');
+        // Remove the dummy layer that was just added
+        map.removeLayer(defaultViewLayer);
+        // Apply zoom-based layer immediately
+        applyZoomBasedLayer();
+    } else if (e.name === 'Street View' || e.name === 'Satellite View') {
+        // User manually selected a specific layer - deactivate default view
+        isDefaultViewActive = false;
+        currentActiveLayer = e.layer;
+        console.log('Default View deactivated - manual selection:', e.name);
+    }
+});
 
 // =============================================================================
 //  CUSTOM LEAFLET CONTROLS
