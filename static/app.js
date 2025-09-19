@@ -86,7 +86,8 @@ const worldBounds = L.latLngBounds(southWest, northEast);
 const map = L.map('map', {
     //maxBounds: worldBounds,
     //maxBoundsViscosity: 0.0, // Makes the map "bounce back" at the edges.
-    zoomControl: false // Disable default zoom control, we'll add it to bottom
+    zoomControl: false, // Disable default zoom control, we'll add it to bottom
+    maxZoom: 19 // Set consistent maxZoom with tile layers
 }).setView(MAP_CONFIG.center, MAP_CONFIG.zoom).setMinZoom(MAP_CONFIG.minZoom).setZoom(MAP_CONFIG.zoom);
 
 // =============================================================================
@@ -158,7 +159,7 @@ const satelliteMap = L.layerGroup([satelliteBase, transportationOverlay]);
 
 // Track default view state
 let isDefaultViewActive = true; // Start with Default View active
-let currentActiveLayer = streetMap; // Track which layer is currently active
+let currentActiveLayer = null; // Track which layer is currently active - start with null to force initial layer addition
 let isAutoSwitching = false; // Flag to prevent event interference during automatic switching
 
 // Configuration: Zoom threshold for switching to satellite view
@@ -1176,9 +1177,9 @@ async function initializeApp() {
         
         if (error.name === 'AbortError') {
             errorMessage = 'Request timed out. Please check your internet connection and try refreshing the page.';
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
             errorMessage = 'Network error. Please check your internet connection and try refreshing the page.';
-        } else if (error.message.includes('CORS')) {
+        } else if (error.message && error.message.includes('CORS')) {
             errorMessage = 'Server configuration issue. Please try again later.';
         }
         
